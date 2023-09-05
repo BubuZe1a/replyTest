@@ -1,5 +1,9 @@
 # Node Dcinside
 
+# Install
+
+`npm i node-dcinside`
+
 # Example
 
 ## 글쓰기
