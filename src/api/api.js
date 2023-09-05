@@ -356,7 +356,7 @@ class DcinsideApi {
         formData.append('r_key', rKey);
         formData.append('gall_id', id);
         formData.append('_GALLTYPE_', type);
-        formData.append('files[]', fs.readFileSync(path), {
+        formData.append('files[]', typeof path === 'object' ? path : fs.readFileSync(path), {
             filename: this.generateRandomString() + '.png'
         });
 
@@ -378,7 +378,7 @@ class DcinsideApi {
         const formData = new FormData();
 
         formData.append('id', id);
-        formData.append('avatar', fs.readFileSync(path), {
+        formData.append('avatar', typeof path === 'object' ? path : fs.readFileSync(path), {
             filename: this.generateRandomString() + '.mp4'
         });
 
