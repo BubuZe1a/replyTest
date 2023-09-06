@@ -1,11 +1,13 @@
 export interface MediaOptions {
-  image: string;
+  image: string | Buffer;
   video: {
     path: string;
     comment: string | number;
     canDownload: boolean;
   };
 }
+
+export type type = 'write' | 'delete' | 'check';
 
 export class DcinsideApi {
   constructor(username: string, password: string | number);
@@ -48,6 +50,17 @@ export class DcinsideApi {
 
   public requestVote(id: string | number, no: number, isUp: boolean);
 
+  public requestGuestbookWrite(
+    userid: string | number,
+    memo: string | number,
+    isSecret?: boolean
+  );
+
+  public removeGuestbookWrite(
+    userid: string | number,
+    headnum: number
+  );
+
   public requestUploadImage(id: string | number, path: string);
 
   public requestUploadVideo(id: string | number, path: string);
@@ -66,11 +79,15 @@ export class DcinsideApi {
 
   public checkVaildGall(id: string | number);
 
+  public checkVaildUser(userid: string | number);
+
   public parseWrite(url: string);
 
   public parseView(url: string, up: boolean);
 
   public parseDelete(url: string);
+
+  public getGallogApi(userid: string | number, type: type);
 
   public generateRandomString();
 
