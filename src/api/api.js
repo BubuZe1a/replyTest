@@ -160,7 +160,7 @@ class DcinsideApi {
                 memo,
                 no,
                 key,
-                headtext: 30,
+                headtext: 0,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
