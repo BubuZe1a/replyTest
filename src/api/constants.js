@@ -1,11 +1,13 @@
-const BASE_URL = 'https://gall.dcinside.com'
-const UPLOAD_BASE_URL = 'https://upimg.dcinside.com'
-const M4UP_BASE_URL = 'https://m4up1.dcinside.com'
+const BASE_URL = 'https://gall.dcinside.com';
+const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
+const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
+const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
 
 module.exports = {
     BASE_URL,
     UPLOAD_BASE_URL,
     M4UP_BASE_URL,
+    GALLOG_BASE_URL,
     WRITE_MAJOR_URL: `${BASE_URL}/board/write/?id=`,
     WRITE_MINOR_URL: `${BASE_URL}/mgallery/board/write/?id=`,
     WRITE_MINI_URL: `${BASE_URL}/mini/board/write/?id=`,
