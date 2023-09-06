@@ -26,6 +26,10 @@ export class DcinsideApi {
     memo: string
   );
 
+  public requestArticleInfo(id: string | number, no: number);
+
+  public requestArticleFiles(id: string | number, no: number);
+
   public removeArticle(id: string | number, no: number);
 
   public requestComment(
@@ -56,10 +60,7 @@ export class DcinsideApi {
     isSecret?: boolean
   );
 
-  public removeGuestbookWrite(
-    userid: string | number,
-    headnum: number
-  );
+  public removeGuestbookWrite(userid: string | number, headnum: number);
 
   public requestUploadImage(id: string | number, path: string);
 
