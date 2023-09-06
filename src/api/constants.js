@@ -2,12 +2,14 @@ const BASE_URL = 'https://gall.dcinside.com';
 const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
+const IMG2_BASE_URL = 'https://img2.dcinside.com/';
 
 module.exports = {
     BASE_URL,
     UPLOAD_BASE_URL,
     M4UP_BASE_URL,
     GALLOG_BASE_URL,
+    IMG2_BASE_URL,
     GET_VIEW_URL: `${BASE_URL}/board/view/get`,
     GET_VIEW_FILE_URL: `${BASE_URL}/board/files/get_attach_file/`,
     WRITE_MAJOR_URL: `${BASE_URL}/board/write/?id=`,
