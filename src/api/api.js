@@ -10,6 +10,8 @@ const {
     WRITE_MAJOR_URL,
     WRITE_MINOR_URL,
     WRITE_MINI_URL,
+    GET_VIEW_FILE_URL,
+    GET_VIEW_URL,
     VIEW_MAJOR_URL,
     VIEW_MINOR_URL,
     REGIST_VIDEO_URL,
@@ -89,7 +91,7 @@ class DcinsideApi {
             block_key: data,
             service_code: neverKey,
             _GALLTYPE_: type,
-            headtext: '0',
+            headtext: 0,
             mode: 'W'
         }
 
@@ -164,6 +166,54 @@ class DcinsideApi {
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
+    async requestArticleInfo(id, no) {
+        const { type, listUrl } = await this.checkVaildGall(id);
+
+        const { ci_t, e_s_n_o, cookie } = await this.parseList(listUrl);
+
+        const res = await axios({
+            method: 'POST',
+            url: GET_VIEW_URL,
+            data: {
+                id,
+                no,
+                ci_t,
+                e_s_n_o,
+                _GALLTYPE_: type
+            },
+            headers: {
+                ...this.generateDefaultHeaders(),
+                cookie
+            }
+        });
+
+        return res.data;
+    }
+
+    async requestArticleFiles(id, no) {
+        const { type, listUrl } = await this.checkVaildGall(id);
+
+        const { ci_t, e_s_n_o, cookie } = await this.parseList(listUrl);
+
+        const res = await axios({
+            method: 'POST',
+            url: GET_VIEW_FILE_URL,
+            data: {
+                id,
+                no,
+                ci_t,
+                e_s_n_o,
+                _GALLTYPE_: type
+            },
+            headers: {
+                ...this.generateDefaultHeaders(),
+                cookie
+            }
         });
 
         return res.data;
@@ -490,14 +540,14 @@ class DcinsideApi {
             const res = await axios.get(LIST_MAJOR_URL + id);
 
             if (res.data.includes('mgallery/')) {
-                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id }
+                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id };
             } else {
-                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id }
+                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id };
             }
         } catch {
             try {
                 await axios.get(LIST_MINI_URL + id);
-                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id }
+                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id };
             } catch {
                 throw new Error(`존재하지 않는 갤러리입니다 ${id}`)
             }
@@ -531,6 +581,18 @@ class DcinsideApi {
             secretKey: res.data.match(KEY_PATTERN)[1],
             headtexts: $('.subject_list li').length > 0 ? headtextList : null,
             useCaptcha: $('.kap_codeimg').length > 0
+        };
+    }
+
+    async parseList(url) {
+        const res = await axios.get(url);
+        const $ = cheerio.load(res.data);
+        const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
+
+        return {
+            cookie,
+            ci_t: cookie.split('ci_c=')[1].split(';')[0],
+            e_s_n_o: $('input[name="e_s_n_o"]').attr('value')
         };
     }
 
