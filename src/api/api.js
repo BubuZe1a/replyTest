@@ -6,6 +6,7 @@ const { delay } = require('../utils/delay.js');
 const { jx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
+    GALLOG_BASE_URL,
     WRITE_MAJOR_URL,
     WRITE_MINOR_URL,
     WRITE_MINI_URL,
@@ -159,7 +160,7 @@ class DcinsideApi {
                 memo,
                 no,
                 key,
-                headtext: 0,
+                headtext: 30,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
@@ -346,6 +347,44 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestGuestbookWrite(userid, memo, isSecret = false) {
+        await this.checkVaildUser(userid);
+
+        const url = this.getGallogApi(userid, 'write');
+
+        const res = await axios({
+            method: 'POST',
+            url,
+            data: {
+                memo,
+                is_secret: isSecret ? 1 : 0,
+                name: this.username,
+                password: this.password,
+            },
+            headers: this.generateDefaultHeaders(url.split('/ajax')[0])
+        });
+
+        return res.data;
+    }
+
+    async removeGuestbookWrite(userid, headnum) {
+        await this.checkVaildUser(userid);
+
+        const url = this.getGallogApi(userid, 'delete');
+
+        const res = await axios({
+            method: 'POST',
+            url,
+            data: {
+                headnum,
+                password: this.password
+            },
+            headers: this.generateDefaultHeaders(url.split('/ajax')[0])
+        });
+
+        return res.data;
+    }
+
     async requestUploadImage(id, path) {
         const { type, writeUrl } = await this.checkVaildGall(id);
 
@@ -465,6 +504,15 @@ class DcinsideApi {
         }
     }
 
+    async checkVaildUser(userid) {
+        try {
+            const res = await axios.get(GALLOG_BASE_URL + userid);
+            return /<strong class="nick_name">(.*?)<\/strong>/.exec(res.data)[1];
+        } catch {
+            throw new Error(`유저를 찾을 수 없습니다 ${userid}`)
+        }
+    }
+
     async parseWrite(url) {
         const headtextList = [];
         const res = await axios.get(url);
@@ -525,6 +573,17 @@ class DcinsideApi {
             },
             secretKey: res.data.match(KEY_PATTERN)[1],
         };
+    }
+
+    getGallogApi(userid, type) {
+        switch (type) {
+            case 'write':
+                return GALLOG_BASE_URL + `${userid}/ajax/guestbook_ajax/${type}`;
+            case 'delete':
+                return GALLOG_BASE_URL + `${userid}/ajax/guestbook_ajax/${type}`;
+            case 'check':
+                return GALLOG_BASE_URL + `${userid}/ajax/guestbook_ajax/chk_password`;
+        }
     }
 
     generateRandomString() {
