@@ -8,6 +8,8 @@ module.exports = {
     UPLOAD_BASE_URL,
     M4UP_BASE_URL,
     GALLOG_BASE_URL,
+    GET_VIEW_URL: `${BASE_URL}/board/view/get`,
+    GET_VIEW_FILE_URL: `${BASE_URL}/board/files/get_attach_file/`,
     WRITE_MAJOR_URL: `${BASE_URL}/board/write/?id=`,
     WRITE_MINOR_URL: `${BASE_URL}/mgallery/board/write/?id=`,
     WRITE_MINI_URL: `${BASE_URL}/mini/board/write/?id=`,
