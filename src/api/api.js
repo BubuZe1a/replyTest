@@ -7,6 +7,7 @@ const { jx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
     GALLOG_BASE_URL,
+    IMG2_BASE_URL,
     WRITE_MAJOR_URL,
     WRITE_MINOR_URL,
     WRITE_MINI_URL,
@@ -216,7 +217,13 @@ class DcinsideApi {
             }
         });
 
-        return res.data;
+        if (!res.data) return null;
+
+        const replaceSrc = res.data.map(item => {
+            return { ...item, src: IMG2_BASE_URL + decodeURIComponent(item.src).split('no=')[1].split('&')[0] };
+        });
+
+        return replaceSrc;
     }
 
     async removeArticle(id, no) {
