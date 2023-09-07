@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const FormData = require('form-data');
+const snarkdown = require('snarkdown');
 const fs = require('fs');
 const { delay } = require('../utils/delay.js');
 const { jx } = require('../utils/decrypt.js');
@@ -85,7 +86,7 @@ class DcinsideApi {
         const requestConfig = {
             id,
             subject,
-            memo,
+            memo: snarkdown(memo),
             name: this.username,
             password: this.password,
             r_key: rKey,
@@ -100,7 +101,7 @@ class DcinsideApi {
             const res = await this.requestUploadImage(id, options.image);
 
             requestConfig['file_write[0][file_no]'] = res.files[0].file_temp_no;
-            requestConfig.memo = `<p><img src="${res.files[0].web2__url || res.files[0].web__url}"></p><br>${memo}`;
+            requestConfig.memo = snarkdown(`<p><img src="${res.files[0].web2__url || res.files[0].web__url}"></p><br>${memo}`);
             requestConfig.upload_status = 'Y';
         }
 
@@ -115,7 +116,7 @@ class DcinsideApi {
                 requestConfig.upload_status = 'Y';
             }
 
-            requestConfig.memo += memo
+            requestConfig.memo += snarkdown(memo)
         }
 
         if (options.video) {
@@ -123,7 +124,7 @@ class DcinsideApi {
             const { no } = await this.requestRegistVideo(id, res.thum_url_arr[0], options.video.comment, options.video.canDownload, res.file_no);
 
             requestConfig.movieIdx = `[[${res.file_no},${no}]]`;
-            requestConfig.memo = `<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`;
+            requestConfig.memo = snarkdown(`<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`);
         }
 
         const res = await axios({
