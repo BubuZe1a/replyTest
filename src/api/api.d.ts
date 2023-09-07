@@ -1,22 +1,33 @@
-export interface MediaOptions {
-  image: string | Buffer;
+export interface ArticleOptions {
+  image: string;
   video: {
     path: string;
     comment: string | number;
     canDownload: boolean;
+  };
+  headtext: number;
+}
+
+export interface DcinsideApiOptions {
+  username: string | number;
+  password: string | number;
+  proxy: {
+    protocol: string;
+    host: string;
+    port: number;
   };
 }
 
 export type type = 'write' | 'delete' | 'check';
 
 export class DcinsideApi {
-  constructor(username: string, password: string | number);
+  constructor(options: DcinsideApiOptions);
 
   public requestArticle(
     id: string | number,
     subject: string,
     memo: string,
-    options?: Readonly<MediaOptions>
+    options?: Readonly<ArticleOptions>
   );
 
   public requestArticleEdit(
