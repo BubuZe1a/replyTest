@@ -2,7 +2,6 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const FormData = require('form-data');
 const snarkdown = require('snarkdown');
-const fs = require('fs');
 const { delay } = require('../utils/delay.js');
 const { jx } = require('../utils/decrypt.js');
 const {
@@ -41,7 +40,8 @@ const {
     HIT_VOTE_URL,
     BEST_VOTE_URL,
     DCCON_LIST_URL
-} = require("./constants.js")
+} = require("./constants.js");
+const fs = require('fs');
 
 const GALL_TYPE = {
     MAJOR: 'G',
@@ -54,12 +54,12 @@ const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
 
 class DcinsideApi {
-    username;
-    password;
-
-    constructor(username, password) {
-        this.username = username;
-        this.password = password;
+    constructor(options = {}) {
+        this.username = options.username;
+        this.password = options.password;
+        this.axios = axios.create({
+            proxy: options.proxy
+        });
     }
 
     async requestArticle(id, subject, memo, options = {}) {
@@ -71,7 +71,7 @@ class DcinsideApi {
 
         const header = this.generateDefaultHeaders(writeUrl);
 
-        const { data } = await axios({
+        const { data } = await this.axios({
             method: 'POST',
             url: BLOCK_KEY_URL,
             data: {
@@ -97,26 +97,28 @@ class DcinsideApi {
             mode: 'W'
         }
 
-        if (options.image && Array.isArray(options.image) === false) {
-            const res = await this.requestUploadImage(id, options.image);
+        if (options.image) {
+            if (!Array.isArray(options.image)) {
+                const res = await this.requestUploadImage(id, options.image);
+                const fileUrl = res.files[0].web2__url || res.files[0].web__url;
 
-            requestConfig['file_write[0][file_no]'] = res.files[0].file_temp_no;
-            requestConfig.memo = snarkdown(`<p><img src="${res.files[0].web2__url || res.files[0].web__url}"></p><br>${memo}`);
-            requestConfig.upload_status = 'Y';
-        }
-
-        if (options.image && Array.isArray(options.image) === true) {
-            requestConfig.memo = '';
-
-            for (let i = 0; i < options.image.length; i++) {
-                const res = await this.requestUploadImage(id, options.image[i]);
-
-                requestConfig[`file_write[${i}][file_no]`] = res.files[0].file_temp_no;
-                requestConfig.memo += `<p><img src="${res.files[0].web2__url || res.files[0].web__url}"></p><br>`;
+                requestConfig['file_write[0][file_no]'] = res.files[0].file_temp_no;
+                requestConfig.memo = snarkdown(`<p><img src="${fileUrl}"></p><br>${memo}`);
                 requestConfig.upload_status = 'Y';
-            }
+            } else {
+                requestConfig.memo = '';
 
-            requestConfig.memo += snarkdown(memo)
+                for (let i = 0; i < options.image.length; i++) {
+                    const res = await this.requestUploadImage(id, options.image[i]);
+                    const fileUrl = res.files[0].web2__url || res.files[0].web__url;
+
+                    requestConfig[`file_write[${i}][file_no]`] = res.files[0].file_temp_no;
+                    requestConfig.memo += `<p><img src="${fileUrl}"></p><br>`;
+                    requestConfig.upload_status = 'Y';
+                }
+
+                requestConfig.memo += snarkdown(memo);
+            }
         }
 
         if (options.video) {
@@ -127,7 +129,9 @@ class DcinsideApi {
             requestConfig.memo = snarkdown(`<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`);
         }
 
-        const res = await axios({
+        if (options.headtext) requestConfig.headtext = options.headtext;
+
+        const res = await this.axios({
             method: 'POST',
             url: POST_URL,
             data: requestConfig,
@@ -140,7 +144,7 @@ class DcinsideApi {
     async requestArticleEdit(id, no, subject, memo) {
         const { type } = await this.checkVaildGall(id);
 
-        const { data } = await axios({
+        const { data } = await this.axios({
             method: 'POST',
             url: EDIT_POST_KEY_URL,
             data: {
@@ -155,7 +159,7 @@ class DcinsideApi {
 
         if (key === 'captcha') throw new Error('Captcha');
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: EDIT_POST_URL,
             data: {
@@ -178,7 +182,7 @@ class DcinsideApi {
 
         const { ci_t, e_s_n_o, cookie } = await this.parseList(listUrl);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: GET_VIEW_URL,
             data: {
@@ -202,7 +206,7 @@ class DcinsideApi {
 
         const { ci_t, e_s_n_o, cookie } = await this.parseList(listUrl);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: GET_VIEW_FILE_URL,
             data: {
@@ -243,7 +247,7 @@ class DcinsideApi {
 
         const neverKey = jx(secretKey, serviceCode);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: POST_DELETE_URL,
             data: {
@@ -272,24 +276,21 @@ class DcinsideApi {
 
         const neverKey = jx(secretKey, serviceCode);
 
-        const requestConfig = {
-            id,
-            no,
-            memo,
-            c_gall_id: id,
-            c_gall_no: no,
-            _GALLTYPE_: type,
-            name: this.username,
-            password: this.password,
-            service_code: neverKey
-        }
-
-        if (c_no) requestConfig.c_no = c_no;
-
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: COMMENT_POST_URL,
-            data: requestConfig,
+            data: {
+                id,
+                no,
+                memo,
+                c_no,
+                c_gall_id: id,
+                c_gall_no: no,
+                _GALLTYPE_: type,
+                name: this.username,
+                password: this.password,
+                service_code: neverKey
+            },
             headers: this.generateDefaultHeaders(viewUrl + `&no=${no}`)
         });
 
@@ -299,7 +300,7 @@ class DcinsideApi {
     async removeComment(id, no, re_no) {
         const { type, viewUrl } = await this.checkVaildGall(id);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: COMMENT_DELETE_URL,
             data: {
@@ -308,7 +309,7 @@ class DcinsideApi {
                 re_no,
                 mode: 'del',
                 _GALLTYPE_: type,
-                re_password: this.password,
+                re_password: this.password
             },
             headers: this.generateDefaultHeaders(viewUrl + `&no=${no}`)
         });
@@ -321,7 +322,7 @@ class DcinsideApi {
 
         const { e_s_n_o } = await this.parseView(viewUrl + `&no=${no}`);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: COMMENT_LIST_URL,
             data: {
@@ -342,7 +343,7 @@ class DcinsideApi {
     async requestDccon(id, no, package_idx, detail_idx) {
         const { type, viewUrl } = await this.checkVaildGall(id);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: DCCON_POST_URL,
             data: {
@@ -358,7 +359,7 @@ class DcinsideApi {
                 name: this.username,
                 password: this.password,
                 input_type: 'comment',
-                _GALLTYPE_: type,
+                _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders(viewUrl + `&no=${no}`)
         });
@@ -367,7 +368,7 @@ class DcinsideApi {
     }
 
     async requestDcconList(page = 0) {
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: DCCON_LIST_URL,
             data: {
@@ -385,7 +386,7 @@ class DcinsideApi {
 
         const { ci_t, cookie } = await this.parseView(viewUrl + `&no=${no}`, isUp);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: VOTE_URL,
             data: {
@@ -394,7 +395,7 @@ class DcinsideApi {
                 ci_t,
                 _GALLTYPE_: type,
                 mode: isUp ? 'U' : 'D',
-                link_id: id,
+                link_id: id
             },
             headers: {
                 ...this.generateDefaultHeaders(viewUrl + `&no=${no}`),
@@ -410,14 +411,14 @@ class DcinsideApi {
 
         const url = this.getGallogApi(userid, 'write');
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url,
             data: {
                 memo,
                 is_secret: isSecret ? 1 : 0,
                 name: this.username,
-                password: this.password,
+                password: this.password
             },
             headers: this.generateDefaultHeaders(url.split('/ajax')[0])
         });
@@ -430,7 +431,7 @@ class DcinsideApi {
 
         const url = this.getGallogApi(userid, 'delete');
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url,
             data: {
@@ -457,7 +458,7 @@ class DcinsideApi {
             filename: this.generateRandomString() + '.png'
         });
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: UPLOAD_IMAGE_URL + id,
             data: formData.getBuffer(),
@@ -479,7 +480,7 @@ class DcinsideApi {
             filename: this.generateRandomString() + '.mp4'
         });
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: UPLOAD_VIDEO_URL,
             data: formData.getBuffer(),
@@ -492,7 +493,7 @@ class DcinsideApi {
     async requestRegistVideo(id, thum_url, comment, canDownload = true, file_no) {
         const { type } = await this.checkVaildGall(id);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: REGIST_VIDEO_URL,
             data: {
@@ -512,7 +513,7 @@ class DcinsideApi {
     async requestHit(id, no) {
         const { type } = await this.checkVaildGall(id);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: HIT_VOTE_URL,
             data: {
@@ -529,7 +530,7 @@ class DcinsideApi {
     async requestBest(id, no) {
         const { type } = await this.checkVaildGall(id);
 
-        const res = await axios({
+        const res = await this.axios({
             method: 'POST',
             url: BEST_VOTE_URL,
             data: {
@@ -545,7 +546,7 @@ class DcinsideApi {
 
     async checkVaildGall(id) {
         try {
-            const res = await axios.get(LIST_MAJOR_URL + id);
+            const res = await this.axios.get(LIST_MAJOR_URL + id);
 
             if (res.data.includes('mgallery/')) {
                 return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id };
@@ -554,26 +555,26 @@ class DcinsideApi {
             }
         } catch {
             try {
-                await axios.get(LIST_MINI_URL + id);
+                await this.axios.get(LIST_MINI_URL + id);
                 return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id };
             } catch {
-                throw new Error(`존재하지 않는 갤러리입니다 ${id}`)
+                throw new Error(`존재하지 않는 갤러리입니다 ${id}`);
             }
         }
     }
 
     async checkVaildUser(userid) {
         try {
-            const res = await axios.get(GALLOG_BASE_URL + userid);
+            const res = await this.axios.get(GALLOG_BASE_URL + userid);
             return /<strong class="nick_name">(.*?)<\/strong>/.exec(res.data)[1];
         } catch {
-            throw new Error(`유저를 찾을 수 없습니다 ${userid}`)
+            throw new Error(`유저를 찾을 수 없습니다 ${userid}`);
         }
     }
 
     async parseWrite(url) {
         const headtextList = [];
-        const res = await axios.get(url);
+        const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
 
         $('.subject_list li').each(function () {
@@ -593,7 +594,7 @@ class DcinsideApi {
     }
 
     async parseList(url) {
-        const res = await axios.get(url);
+        const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
         const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
 
@@ -605,7 +606,7 @@ class DcinsideApi {
     }
 
     async parseView(url, up = true) {
-        const res = await axios.get(url);
+        const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
         const params = new URL(url).searchParams;
         const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ') + `; ${params.get('id')}${params.get('no')}_${up ? 'Firstcheck' : 'Firstcheck_down'}=Y`;
@@ -615,12 +616,12 @@ class DcinsideApi {
             ci_t: cookie.split('ci_c=')[1].split(';')[0],
             e_s_n_o: $('input[name="e_s_n_o"]').attr('value'),
             serviceCode: $('input[name="service_code"]').attr('value'),
-            secretKey: res.data.match(KEY_PATTERN)[1],
+            secretKey: res.data.match(KEY_PATTERN)[1]
         };
     }
 
     async parseDelete(url) {
-        const res = await axios.get(url);
+        const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
 
         return {
@@ -641,7 +642,7 @@ class DcinsideApi {
                     .match(SECRET_PATTERN)[1]
                     .split('=')[1],
             },
-            secretKey: res.data.match(KEY_PATTERN)[1],
+            secretKey: res.data.match(KEY_PATTERN)[1]
         };
     }
 
@@ -674,6 +675,4 @@ class DcinsideApi {
     }
 }
 
-module.exports = {
-    DcinsideApi
-}
+module.exports = { DcinsideApi }
