@@ -1,3 +1,5 @@
+import { CreateAxiosDefaults } from 'axios';
+
 export interface ArticleOptions {
   image: string;
   video: {
@@ -23,6 +25,8 @@ export type type = 'write' | 'delete' | 'check';
 export class DcinsideApi {
   constructor(options: DcinsideApiOptions);
 
+  public setAxios(options: CreateAxiosDefaults);
+
   public requestArticle(
     id: string | number,
     subject: string,
@@ -40,6 +44,8 @@ export class DcinsideApi {
   public requestArticleInfo(id: string | number, no: number);
 
   public requestArticleFiles(id: string | number, no: number);
+
+  public requestArticleReportPorn(id: string | number, no: number);
 
   public removeArticle(id: string | number, no: number);
 
@@ -94,6 +100,8 @@ export class DcinsideApi {
   public checkVaildUser(userid: string | number);
 
   public parseWrite(url: string);
+
+  public parseList(url: string);
 
   public parseView(url: string, up: boolean);
 
