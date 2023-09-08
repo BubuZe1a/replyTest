@@ -33,6 +33,7 @@ module.exports = {
     COMMENT_LIST_URL: `${BASE_URL}/board/comment/`,
     DCCON_POST_URL: `${BASE_URL}/dccon/insert_icon`,
     DCCON_LIST_URL: `${BASE_URL}/dccon/lists`,
+    PORN_REPORT_URL: `${BASE_URL}/singo/singo_porno`,
     POST_URL: `${BASE_URL}/board/forms/article_submit`,
     EDIT_POST_KEY_URL: `${BASE_URL}/board/forms/modify_password_submit`,
     POST_DELETE_URL: `${BASE_URL}/board/forms/delete_password_submit`,
