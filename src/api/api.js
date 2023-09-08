@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const FormData = require('form-data');
 const snarkdown = require('snarkdown');
 const { delay } = require('../utils/delay.js');
-const { jx } = require('../utils/decrypt.js');
+const { jx, xc } = require('../utils/decrypt.js');
 const {
     BASE_URL,
     GALLOG_BASE_URL,
@@ -12,6 +12,7 @@ const {
     WRITE_MINOR_URL,
     WRITE_MINI_URL,
     GET_VIEW_FILE_URL,
+    PORN_REPORT_URL,
     GET_VIEW_URL,
     VIEW_MAJOR_URL,
     VIEW_MINOR_URL,
@@ -58,8 +59,12 @@ class DcinsideApi {
         this.username = options.username;
         this.password = options.password;
         this.axios = axios.create({
-            proxy: options.proxy
+            proxy: options.proxy,
         });
+    }
+
+    setAxios(options = {}) {
+        this.axios = axios.create(options);
     }
 
     async requestArticle(id, subject, memo, options = {}) {
@@ -229,6 +234,27 @@ class DcinsideApi {
         });
 
         return replaceSrc;
+    }
+
+    async requestArticleReportPorn(id, no) {
+        const { type, viewUrl } = await this.checkVaildGall(id);
+
+        const { ci_t, cookie } = await this.parseView(viewUrl + `&no=${no}`);
+
+        const res = await this.axios({
+            method: 'POST',
+            url: PORN_REPORT_URL,
+            data: {
+                id,
+                ci_t,
+                content_no: no,
+                srkey: xc(),
+                _GALLTYPE_: type
+            },
+            headers: { ...this.generateDefaultHeaders(viewUrl + `&no=${no}`), cookie }
+        });
+
+        return res.data;
     }
 
     async removeArticle(id, no) {
