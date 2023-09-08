@@ -1,4 +1,5 @@
 const KEY = 'yL/M=zNa0bcPQdReSfTgUhViWjXkYIZmnpo+qArOBslCt2D3uE4Fv5G6wH178xJ9K';
+const HEX = ['102 102 102 102 048 048 013 010', '048 048 056 048 048 048', '052 098 048 048 056 050', '056 048 048 048 056 048', '0000ff', '102 102 048 048 048 048', '102 102 056 099 048 048'];
 
 function jx(keys, code) {
     // common.js?v=210817:858
@@ -34,6 +35,9 @@ function jx(keys, code) {
     return o.join('');
 }
 
-module.exports = {
-    jx
+function xc() {
+    // recommend_box.js?v=220929:5
+    return HEX[new Date().getDay()];
 }
+
+module.exports = { jx, xc }
