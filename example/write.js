@@ -11,6 +11,6 @@ const client = new DcinsideApi({
 });
 
 (async function () {
-    const res = await client.requestArticle('baseball_new11', 'mardkown', '**bold** test');
+    const res = await client.requestArticle('baseball_new11', 'mardkown test', '**bold** test');
     console.log(res);
 })()

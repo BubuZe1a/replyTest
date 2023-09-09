@@ -7,8 +7,8 @@ const client = new DcinsideApi({
 
 (async function () {
     const res = await client.requestArticle('baseball_new11', 'cat image', '~~cute~~ image', {
-        image: './cat.png', /** 여러개면 ['./cat.png', './dog.png'] 형식으로 Buffer 지원 */,
-        // headtext: 10 /** 말머리 */
+        image: './cat.png', /** 여러개면 ['./cat.png', './dog.png'] 형식으로 Buffer 지원 */
+        // headtext: 0 /** 말머리 기본 0 */
     });
     console.log(res);
 })()
