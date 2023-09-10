@@ -1,4 +1,4 @@
-# Node Dcinside
+# Node Dcinside - Unofficial Dcinside Api
 
 # Install
 
