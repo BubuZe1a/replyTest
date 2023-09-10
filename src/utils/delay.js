@@ -6,6 +6,4 @@ function delay(ms) {
     );
 }
 
-module.exports = {
-    delay
-}
+module.exports = { delay }

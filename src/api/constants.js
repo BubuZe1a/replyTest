@@ -3,6 +3,7 @@ const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
 const IMG2_BASE_URL = 'https://img2.dcinside.com/';
+const PAPAGO_OCR_URL = 'https://apis.naver.com/papago/papago_app/ocr/detect';
 
 module.exports = {
     BASE_URL,
@@ -10,6 +11,9 @@ module.exports = {
     M4UP_BASE_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
+    PAPAGO_OCR_URL,
+    CAPTCHA_SESSION_URL: `${BASE_URL}/kcaptcha/session`,
+    CAPTCHA_URL: `${BASE_URL}/kcaptcha/image/?gall_id=`,
     GET_VIEW_URL: `${BASE_URL}/board/view/get`,
     GET_VIEW_FILE_URL: `${BASE_URL}/board/files/get_attach_file/`,
     WRITE_MAJOR_URL: `${BASE_URL}/board/write/?id=`,

@@ -1,4 +1,8 @@
+const crypto = require('crypto');
+const { PAPAGO_OCR_URL } = require('../api/constants.js');
+
 const KEY = 'yL/M=zNa0bcPQdReSfTgUhViWjXkYIZmnpo+qArOBslCt2D3uE4Fv5G6wH178xJ9K';
+const HMAC_SHA1 = 'aVwDprJBYvnz1NBs8W7GBuaHQDeoynolGF5IdsxyYP6lyCzxAOG38hleJo43NnB6';
 const HEX = ['102 102 102 102 048 048 013 010', '048 048 056 048 048 048', '052 098 048 048 056 050', '056 048 048 048 056 048', '0000ff', '102 102 048 048 048 048', '102 102 056 099 048 048'];
 
 function jx(keys, code) {
@@ -35,9 +39,19 @@ function jx(keys, code) {
     return o.join('');
 }
 
+function kx() {
+    const timeStamp = new Date().getTime();
+    const hmac = crypto.createHmac('sha1', HMAC_SHA1).update(PAPAGO_OCR_URL).update(timeStamp.toString()).digest('base64');
+
+    return {
+        hmac,
+        ts: timeStamp
+    };
+}
+
 function xc() {
     // recommend_box.js?v=220929:5
     return HEX[new Date().getDay()];
 }
 
-module.exports = { jx, xc }
+module.exports = { jx, xc, kx }

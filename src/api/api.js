@@ -1,11 +1,11 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const FormData = require('form-data');
-const snarkdown = require('snarkdown');
 const { delay } = require('../utils/delay.js');
-const { jx, xc } = require('../utils/decrypt.js');
+const { jx, xc, kx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
+    CAPTCHA_SESSION_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     WRITE_MAJOR_URL,
@@ -40,7 +40,9 @@ const {
     POST_DELETE_URL,
     HIT_VOTE_URL,
     BEST_VOTE_URL,
-    DCCON_LIST_URL
+    DCCON_LIST_URL,
+    PAPAGO_OCR_URL,
+    CAPTCHA_URL
 } = require("./constants.js");
 const fs = require('fs');
 
@@ -58,8 +60,9 @@ class DcinsideApi {
     constructor(options = {}) {
         this.username = options.username;
         this.password = options.password;
+        this.captcha = options.captcha;
         this.axios = axios.create({
-            proxy: options.proxy,
+            proxy: options.proxy
         });
     }
 
@@ -70,7 +73,7 @@ class DcinsideApi {
     async requestArticle(id, subject, memo, options = {}) {
         const { type, writeUrl } = await this.checkVaildGall(id);
 
-        const { blockKey, rKey, serviceCode, secretKey } = await this.parseWrite(writeUrl);
+        const { blockKey, rKey, serviceCode, secretKey, ci_t, cookie } = await this.parseWrite(writeUrl);
 
         const neverKey = jx(secretKey, serviceCode);
 
@@ -91,7 +94,7 @@ class DcinsideApi {
         const requestConfig = {
             id,
             subject,
-            memo: snarkdown(memo),
+            memo,
             name: this.username,
             password: this.password,
             r_key: rKey,
@@ -102,13 +105,21 @@ class DcinsideApi {
             mode: 'W'
         }
 
+        if (this.captcha) {
+            const { data } = await this.requestCaptchaSession(id, type, 'write', ci_t, cookie);
+
+            const res = await this.requestOcr(data);
+
+            requestConfig.code = res.ocrs[0].text.toLowerCase();
+        }
+
         if (options.image) {
             if (!Array.isArray(options.image)) {
                 const res = await this.requestUploadImage(id, options.image);
                 const fileUrl = res.files[0].web2__url || res.files[0].web__url;
 
                 requestConfig['file_write[0][file_no]'] = res.files[0].file_temp_no;
-                requestConfig.memo = snarkdown(`<p><img src="${fileUrl}"></p><br>${memo}`);
+                requestConfig.memo = `<p><img src="${fileUrl}"></p><br>${memo}`;
                 requestConfig.upload_status = 'Y';
             } else {
                 requestConfig.memo = '';
@@ -122,7 +133,7 @@ class DcinsideApi {
                     requestConfig.upload_status = 'Y';
                 }
 
-                requestConfig.memo += snarkdown(memo);
+                requestConfig.memo += memo;
             }
         }
 
@@ -131,7 +142,7 @@ class DcinsideApi {
             const { no } = await this.requestRegistVideo(id, res.thum_url_arr[0], options.video.comment, options.video.canDownload, res.file_no);
 
             requestConfig.movieIdx = `[[${res.file_no},${no}]]`;
-            requestConfig.memo = snarkdown(`<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`);
+            requestConfig.memo = `<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`;
         }
 
         if (options.headtext) requestConfig.headtext = options.headtext;
@@ -140,7 +151,7 @@ class DcinsideApi {
             method: 'POST',
             url: POST_URL,
             data: requestConfig,
-            headers: header
+            headers: { ...header, cookie },
         });
 
         return res.data;
@@ -197,10 +208,7 @@ class DcinsideApi {
                 e_s_n_o,
                 _GALLTYPE_: type
             },
-            headers: {
-                ...this.generateDefaultHeaders(),
-                cookie
-            }
+            headers: { ...this.generateDefaultHeaders(), cookie }
         });
 
         return res.data;
@@ -221,10 +229,7 @@ class DcinsideApi {
                 e_s_n_o,
                 _GALLTYPE_: type
             },
-            headers: {
-                ...this.generateDefaultHeaders(),
-                cookie
-            }
+            headers: { ...this.generateDefaultHeaders(), cookie }
         });
 
         if (!res.data) return null;
@@ -298,26 +303,36 @@ class DcinsideApi {
     async requestComment(id, no, memo, c_no) {
         const { type, viewUrl } = await this.checkVaildGall(id);
 
-        const { secretKey, serviceCode } = await this.parseView(viewUrl + `&no=${no}`);
+        const { secretKey, serviceCode, ci_t, cookie } = await this.parseView(viewUrl + `&no=${no}`);
 
         const neverKey = jx(secretKey, serviceCode);
+
+        const requestConfig = {
+            id,
+            no,
+            memo,
+            c_no,
+            c_gall_id: id,
+            c_gall_no: no,
+            _GALLTYPE_: type,
+            name: this.username,
+            password: this.password,
+            service_code: neverKey
+        }
+
+        if (this.captcha) {
+            const { data } = await this.requestCaptchaSession(id, type, 'comment', ci_t, cookie);
+
+            const res = await this.requestOcr(data);
+
+            requestConfig.code = res.ocrs[0].text.toLowerCase();
+        }
 
         const res = await this.axios({
             method: 'POST',
             url: COMMENT_POST_URL,
-            data: {
-                id,
-                no,
-                memo,
-                c_no,
-                c_gall_id: id,
-                c_gall_no: no,
-                _GALLTYPE_: type,
-                name: this.username,
-                password: this.password,
-                service_code: neverKey
-            },
-            headers: this.generateDefaultHeaders(viewUrl + `&no=${no}`)
+            data: requestConfig,
+            headers: { ...this.generateDefaultHeaders(viewUrl + `&no=${no}`), cookie }
         });
 
         return res.data;
@@ -410,23 +425,32 @@ class DcinsideApi {
     async requestVote(id, no, isUp = true) {
         const { type, viewUrl } = await this.checkVaildGall(id);
 
-        const { ci_t, cookie } = await this.parseView(viewUrl + `&no=${no}`, isUp);
+        const { ci_t, cookie, cur_t, longKey } = await this.parseView(viewUrl + `&no=${no}`, isUp);
+
+        const requestConfig = {
+            id,
+            no,
+            ci_t,
+            v_cur_t: cur_t,
+            _GALLTYPE_: type,
+            [longKey.name]: longKey.value,
+            mode: isUp ? 'U' : 'D',
+            link_id: id
+        }
+
+        if (this.captcha) {
+            const { data } = await this.requestCaptchaSession(id, type, 'recommend', ci_t, cookie);
+
+            const res = await this.requestOcr(data);
+
+            requestConfig.code_recommend = res.ocrs[0].text.toLowerCase();
+        }
 
         const res = await this.axios({
             method: 'POST',
             url: VOTE_URL,
-            data: {
-                id,
-                no,
-                ci_t,
-                _GALLTYPE_: type,
-                mode: isUp ? 'U' : 'D',
-                link_id: id
-            },
-            headers: {
-                ...this.generateDefaultHeaders(viewUrl + `&no=${no}`),
-                cookie
-            }
+            data: requestConfig,
+            headers: { ...this.generateDefaultHeaders(viewUrl + `&no=${no}`), cookie }
         });
 
         return res.data;
@@ -570,6 +594,53 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestCaptchaSession(id, type, captcha_type, ci_t, cookie) {
+        await this.axios({
+            method: 'POST',
+            url: CAPTCHA_SESSION_URL,
+            data: {
+                ci_t,
+                gall_id: id,
+                kcaptcha_type: captcha_type,
+                _GALLTYPE_: type
+            },
+            headers: { ...this.generateDefaultHeaders(), cookie }
+        });
+
+        const res = await this.axios({
+            method: 'GET',
+            url: CAPTCHA_URL + `${id}&kcaptcha_type=${captcha_type}&time=${(new Date).getTime()}&_GALLTYPE_=${type}`,
+            headers: { ...this.generateDefaultHeaders(), cookie },
+            responseType: 'arraybuffer'
+        });
+
+        return res;
+    }
+
+    async requestOcr(path) {
+        const { hmac, ts } = kx();
+
+        const formData = new FormData();
+
+        formData.append('langDetect', 'true');
+        formData.append('image', typeof path === 'object' ? path : fs.readFileSync(path), {
+            filename: 'image',
+        });
+
+        const res = await this.axios({
+            method: 'POST',
+            url: PAPAGO_OCR_URL,
+            params: {
+                msgpad: ts,
+                md: hmac
+            },
+            data: formData.getBuffer(),
+            headers: formData.getHeaders(),
+        });
+
+        return res.data;
+    }
+
     async checkVaildGall(id) {
         try {
             const res = await this.axios.get(LIST_MAJOR_URL + id);
@@ -602,6 +673,7 @@ class DcinsideApi {
         const headtextList = [];
         const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
+        const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
 
         $('.subject_list li').each(function () {
             headtextList.push({
@@ -610,12 +682,13 @@ class DcinsideApi {
         });
 
         return {
+            cookie,
+            ci_t: cookie.split('ci_c=')[1].split(';')[0],
             blockKey: $('#block_key').attr('value'),
             rKey: $('#r_key').attr('value'),
             serviceCode: $('input[name="service_code"]').attr('value'),
             secretKey: res.data.match(KEY_PATTERN)[1],
-            headtexts: $('.subject_list li').length > 0 ? headtextList : null,
-            useCaptcha: $('.kap_codeimg').length > 0
+            headtexts: $('.subject_list li').length > 0 ? headtextList : null
         };
     }
 
@@ -641,8 +714,13 @@ class DcinsideApi {
             cookie,
             ci_t: cookie.split('ci_c=')[1].split(';')[0],
             e_s_n_o: $('input[name="e_s_n_o"]').attr('value'),
+            cur_t: $('#cur_t').attr('value'),
             serviceCode: $('input[name="service_code"]').attr('value'),
-            secretKey: res.data.match(KEY_PATTERN)[1]
+            secretKey: res.data.match(KEY_PATTERN)[1],
+            longKey: {
+                name: $('#_view_form_').contents().eq(49).attr('name'),
+                value: $('#_view_form_').contents().eq(49).attr('value')
+            }
         };
     }
 

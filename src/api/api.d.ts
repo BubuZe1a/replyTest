@@ -13,6 +13,7 @@ export interface ArticleOptions {
 export interface DcinsideApiOptions {
   username: string | number;
   password: string | number;
+  captcha: boolean;
   proxy: {
     protocol: string;
     host: string;
@@ -20,7 +21,9 @@ export interface DcinsideApiOptions {
   };
 }
 
-export type type = 'write' | 'delete' | 'check';
+export type gallogType = 'write' | 'delete' | 'check';
+
+export type captchaType = 'write' | 'recommend' | 'comment';
 
 export class DcinsideApi {
   constructor(options: DcinsideApiOptions);
@@ -95,6 +98,16 @@ export class DcinsideApi {
 
   public requestBest(id: string | number, no: number);
 
+  public requestCaptchaSession(
+    id: string | number,
+    type: string,
+    captcha_type: captchaType,
+    ci_t: string,
+    cookie: string
+  );
+
+  public requestOcr(path: string);
+
   public checkVaildGall(id: string | number);
 
   public checkVaildUser(userid: string | number);
@@ -107,7 +120,7 @@ export class DcinsideApi {
 
   public parseDelete(url: string);
 
-  public getGallogApi(userid: string | number, type: type);
+  public getGallogApi(userid: string | number, type: gallogType);
 
   public generateRandomString();
 
