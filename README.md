@@ -6,7 +6,7 @@
 
 `npm i node-dcinside`
 
-# Example
+# Example / Usage
 
 See `example` folder
 
