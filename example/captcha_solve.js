@@ -17,6 +17,6 @@ const client = new DcinsideApi({
 })() // 개추/비추 캡챠 우회
 
 (async function () {
-    const res = await client.requestVote('baseball_new11', 5, '우회')
+    const res = await client.requestComment('baseball_new11', 5, '우회')
     console.log(res);
 })() // 댓글 쓰기 캡챠 우회
