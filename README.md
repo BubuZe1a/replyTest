@@ -10,6 +10,10 @@
 
 See `example` folder
 
+# Building
+
+`npm run build`
+
 # License
 
 [GPL-3.0](https://github.com/aitestai/node-dcinside/blob/main/LICENSE)
