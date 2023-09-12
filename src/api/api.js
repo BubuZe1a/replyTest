@@ -43,7 +43,7 @@ const {
     DCCON_LIST_URL,
     PAPAGO_OCR_URL,
     CAPTCHA_URL
-} = require("./constants.js");
+} = require('./constants.js');
 const fs = require('fs');
 
 const GALL_TYPE = {
@@ -306,6 +306,8 @@ class DcinsideApi {
         const { secretKey, serviceCode, ci_t, cookie } = await this.parseView(viewUrl + `&no=${no}`);
 
         const neverKey = jx(secretKey, serviceCode);
+
+        await delay(DELAY_TIME);
 
         const requestConfig = {
             id,
