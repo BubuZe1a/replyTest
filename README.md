@@ -1,4 +1,4 @@
-# Node Dcinside - Unofficial Dcinside Api . [![npm version](https://img.shields.io/npm/v/node-dcinside.svg)](https://npmjs.org/package/node-dcinside)
+# Node Dcinside - Unofficial Dcinside Api. [![npm version](https://img.shields.io/npm/v/node-dcinside.svg)](https://npmjs.org/package/node-dcinside)
 
 # Install
 
@@ -15,6 +15,7 @@
 - [x] 갤로그 글쓰기, 삭제
 - [x] 글 음란물 신고
 - [x] 디시콘 리스트, 댓글 리스트
+- [ ] 디시 Ai 이미지 생성
 
 # Example / Usage
 
