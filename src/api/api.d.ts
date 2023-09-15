@@ -70,6 +70,8 @@ export class DcinsideApi {
     detail_idx: number
   );
 
+  public requestDcconInfo(package_idx: number);
+
   public requestDcconList(page: number);
 
   public requestVote(id: string | number, no: number, isUp: boolean);
@@ -107,6 +109,12 @@ export class DcinsideApi {
   );
 
   public requestOcr(path: string);
+
+  static requestRankingMajor();
+
+  static requestRankingMinor();
+
+  static requestRankingMini();
 
   public checkVaildGall(id: string | number);
 

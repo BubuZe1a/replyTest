@@ -6,10 +6,14 @@ const { jx, xc, kx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
     CAPTCHA_SESSION_URL,
+    DCCON_INFO_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     WRITE_MAJOR_URL,
     WRITE_MINOR_URL,
+    RANK_MAJOR_URL,
+    RANK_MINI_URL,
+    RANK_MINOR_URL,
     WRITE_MINI_URL,
     GET_VIEW_FILE_URL,
     PORN_REPORT_URL,
@@ -410,6 +414,19 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestDcconInfo(package_idx) {
+        const res = await this.axios({
+            method: 'POST',
+            url: DCCON_INFO_URL,
+            data: {
+                package_idx
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
     async requestDcconList(page = 0) {
         const res = await this.axios({
             method: 'POST',
@@ -643,6 +660,33 @@ class DcinsideApi {
         return res.data;
     }
 
+    static async requestRankingMajor() {
+        const res = await this.axios({
+            method: 'GET',
+            url: RANK_MAJOR_URL
+        });
+
+        return this.escapeJson(res.data);
+    }
+
+    static async requestRankingMinor() {
+        const res = await this.axios({
+            method: 'GET',
+            url: RANK_MINOR_URL
+        });
+
+        return this.escapeJson(res.data);
+    }
+
+    static async requestRankingMini() {
+        const res = await this.axios({
+            method: 'GET',
+            url: RANK_MINI_URL
+        });
+
+        return this.escapeJson(res.data);
+    }
+
     async checkVaildGall(id) {
         try {
             const res = await this.axios.get(LIST_MAJOR_URL + id);
@@ -657,7 +701,7 @@ class DcinsideApi {
                 await this.axios.get(LIST_MINI_URL + id);
                 return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id };
             } catch {
-                throw new Error(`존재하지 않는 갤러리입니다 ${id}`);
+                throw new Error(`갤러리를 찾을 수 없습니다. ${id}`);
             }
         }
     }
@@ -677,20 +721,13 @@ class DcinsideApi {
         const $ = cheerio.load(res.data);
         const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
 
-        $('.subject_list li').each(function () {
-            headtextList.push({
-                [$(this).data('no')]: $(this).text()
-            })
-        });
-
         return {
             cookie,
             ci_t: cookie.split('ci_c=')[1].split(';')[0],
             blockKey: $('#block_key').attr('value'),
             rKey: $('#r_key').attr('value'),
             serviceCode: $('input[name="service_code"]').attr('value'),
-            secretKey: res.data.match(KEY_PATTERN)[1],
-            headtexts: $('.subject_list li').length > 0 ? headtextList : null
+            secretKey: res.data.match(KEY_PATTERN)[1]
         };
     }
 
@@ -750,6 +787,10 @@ class DcinsideApi {
             },
             secretKey: res.data.match(KEY_PATTERN)[1]
         };
+    }
+
+    escapeJson(data) {
+        return JSON.parse(data.replace(/[()]/g, ''));
     }
 
     getGallogApi(userid, type) {

@@ -9,14 +9,14 @@ const client = new DcinsideApi({
 (async function () {
     const res = await client.requestArticle('baseball_new11', '제목', '내용 test');
     console.log(res);
-})() // 글쓰기 캡챠 우회
+})(); // 글쓰기 캡챠 우회
 
 (async function () {
     const res = await client.requestVote('baseball_new11', 5)
     console.log(res);
-})() // 개추/비추 캡챠 우회
+})(); // 개추/비추 캡챠 우회
 
 (async function () {
     const res = await client.requestComment('baseball_new11', 5, '우회')
     console.log(res);
-})() // 댓글 쓰기 캡챠 우회
+})(); // 댓글 쓰기 캡챠 우회

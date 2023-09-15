@@ -3,6 +3,8 @@ const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
 const IMG2_BASE_URL = 'https://img2.dcinside.com/';
+const JSON_BASE_URL = 'https://json2.dcinside.com/json1';
+const DCCON_BASE_URL = 'https://dccon.dcinside.com';
 const PAPAGO_OCR_URL = 'https://apis.naver.com/papago/papago_app/ocr/detect';
 
 module.exports = {
@@ -12,6 +14,10 @@ module.exports = {
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     PAPAGO_OCR_URL,
+    RANK_MAJOR_URL: `${JSON_BASE_URL}/ranking_gallery.php`,
+    RANK_MINOR_URL: `${JSON_BASE_URL}/mgallmain/mgallery_ranking.php`,
+    RANK_MINI_URL: `${JSON_BASE_URL}/migallmain/migallery_ranking.php`,
+    DCCON_INFO_URL: `${DCCON_BASE_URL}/index/package_detail`,
     CAPTCHA_SESSION_URL: `${BASE_URL}/kcaptcha/session`,
     CAPTCHA_URL: `${BASE_URL}/kcaptcha/image/?gall_id=`,
     GET_VIEW_URL: `${BASE_URL}/board/view/get`,
