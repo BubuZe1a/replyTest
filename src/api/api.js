@@ -213,7 +213,7 @@ class DcinsideApi {
             headers: this.generateDefaultHeaders()
         });
 
-        return res.data.gall_list
+        return res.data.gall_list.data;
     }
 
     async requestArticleInfo(id, no) {
