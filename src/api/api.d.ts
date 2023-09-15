@@ -44,6 +44,8 @@ export class DcinsideApi {
     memo: string
   );
 
+  public requestArticleList(id: string | number, page?: number);
+
   public requestArticleInfo(id: string | number, no: number);
 
   public requestArticleFiles(id: string | number, no: number);
@@ -61,7 +63,7 @@ export class DcinsideApi {
 
   public removeComment(id: string | number, no: number, re_no: number);
 
-  public requestCommentList(id: string | number, no: number, page: number);
+  public requestCommentList(id: string | number, no: number, page?: number);
 
   public requestDccon(
     id: string | number,
@@ -72,7 +74,7 @@ export class DcinsideApi {
 
   public requestDcconInfo(package_idx: number);
 
-  public requestDcconList(page: number);
+  public requestDcconList(page?: number);
 
   public requestVote(id: string | number, no: number, isUp: boolean);
 

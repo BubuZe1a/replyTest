@@ -9,6 +9,7 @@ const {
     DCCON_INFO_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
+    LIST_POST_URL,
     WRITE_MAJOR_URL,
     WRITE_MINOR_URL,
     RANK_MAJOR_URL,
@@ -195,6 +196,24 @@ class DcinsideApi {
         });
 
         return res.data;
+    }
+
+    async requestArticleList(id, page = 1) {
+        const { type } = await this.checkVaildGall(id);
+
+        if (type === GALL_TYPE.MINI) id = 'mi$' + id;
+
+        const res = await this.axios({
+            method: 'POST',
+            url: LIST_POST_URL,
+            data: {
+                id,
+                page,
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data.gall_list
     }
 
     async requestArticleInfo(id, no) {
@@ -540,7 +559,7 @@ class DcinsideApi {
     async requestUploadVideo(id, path) {
         const { type } = await this.checkVaildGall(id);
 
-        if (type === GALL_TYPE.MINI) 'mi$' + id;
+        if (type === GALL_TYPE.MINI) id = 'mi$' + id;
 
         const formData = new FormData();
 

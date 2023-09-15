@@ -1,4 +1,5 @@
 const BASE_URL = 'https://gall.dcinside.com';
+const MOBILE_BASE_URL = 'https://m.dcinside.com';
 const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
@@ -14,6 +15,7 @@ module.exports = {
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     PAPAGO_OCR_URL,
+    LIST_POST_URL: `${MOBILE_BASE_URL}/ajax/response-list`,
     RANK_MAJOR_URL: `${JSON_BASE_URL}/ranking_gallery.php`,
     RANK_MINOR_URL: `${JSON_BASE_URL}/mgallmain/mgallery_ranking.php`,
     RANK_MINI_URL: `${JSON_BASE_URL}/migallmain/migallery_ranking.php`,
