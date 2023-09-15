@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const FormData = require('form-data');
+const fs = require('fs');
 const { delay } = require('../utils/delay.js');
 const { jx, xc, kx } = require('../utils/decrypt.js');
 const {
@@ -49,7 +50,6 @@ const {
     PAPAGO_OCR_URL,
     CAPTCHA_URL
 } = require('./constants.js');
-const fs = require('fs');
 
 const GALL_TYPE = {
     MAJOR: 'G',
@@ -198,7 +198,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleList(id, page = 1) {
+    async requestArticleList(id, recommend = false, page = 1) {
         const { type } = await this.checkVaildGall(id);
 
         if (type === GALL_TYPE.MINI) id = 'mi$' + id;
@@ -209,6 +209,7 @@ class DcinsideApi {
             data: {
                 id,
                 page,
+                recommend: recommend ? 1 : 0
             },
             headers: this.generateDefaultHeaders()
         });
@@ -679,7 +680,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    static async requestRankingMajor() {
+    async requestRankingMajor() {
         const res = await this.axios({
             method: 'GET',
             url: RANK_MAJOR_URL
@@ -688,7 +689,7 @@ class DcinsideApi {
         return this.escapeJson(res.data);
     }
 
-    static async requestRankingMinor() {
+    async requestRankingMinor() {
         const res = await this.axios({
             method: 'GET',
             url: RANK_MINOR_URL
@@ -697,7 +698,7 @@ class DcinsideApi {
         return this.escapeJson(res.data);
     }
 
-    static async requestRankingMini() {
+    async requestRankingMini() {
         const res = await this.axios({
             method: 'GET',
             url: RANK_MINI_URL

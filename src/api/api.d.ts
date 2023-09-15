@@ -44,7 +44,11 @@ export class DcinsideApi {
     memo: string
   );
 
-  public requestArticleList(id: string | number, page?: number);
+  public requestArticleList(
+    id: string | number,
+    recommend?: boolean,
+    page?: number
+  );
 
   public requestArticleInfo(id: string | number, no: number);
 
@@ -112,11 +116,11 @@ export class DcinsideApi {
 
   public requestOcr(path: string);
 
-  static requestRankingMajor();
+  public requestRankingMajor();
 
-  static requestRankingMinor();
+  public requestRankingMinor();
 
-  static requestRankingMini();
+  public requestRankingMini();
 
   public checkVaildGall(id: string | number);
 
