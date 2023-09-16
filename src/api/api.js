@@ -124,7 +124,7 @@ class DcinsideApi {
         if (options.image) {
             if (!Array.isArray(options.image)) {
                 const res = await this.requestUploadImage(id, options.image);
-                const fileUrl = res.files[0].web2__url || res.files[0].web__url;
+                const fileUrl = res.files[0].web2__url || res.files[0].web__url || res.files[0].url;
 
                 requestConfig['file_write[0][file_no]'] = res.files[0].file_temp_no;
                 requestConfig.memo = `<p><img src="${fileUrl}"></p><br>${memo}`;
@@ -134,7 +134,7 @@ class DcinsideApi {
 
                 for (let i = 0; i < options.image.length; i++) {
                     const res = await this.requestUploadImage(id, options.image[i]);
-                    const fileUrl = res.files[0].web2__url || res.files[0].web__url;
+                    const fileUrl = res.files[0].web2__url || res.files[0].web__url || res.files[0].url;
 
                     requestConfig[`file_write[${i}][file_no]`] = res.files[0].file_temp_no;
                     requestConfig.memo += `<p><img src="${fileUrl}"></p><br>`;
