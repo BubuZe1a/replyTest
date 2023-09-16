@@ -6,6 +6,6 @@ const client = new DcinsideApi({
 });
 
 (async function () {
-    const res = await client.requestArticleList('baseball_new11', false /** false면 기본 true면 념글 */, 1 /** 페이지 */);
+    const res = await client.requestComment('baseball_new11', 1 /** 글 번호 */, '탄핵', 2 /** 답글 달시 번호 (없으면 그냥 댓글) */);
     console.log(res);
 })()

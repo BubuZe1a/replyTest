@@ -6,6 +6,8 @@ const { delay } = require('../utils/delay.js');
 const { jx, xc, kx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
+    REGIST_POLL_URL,
+    END_POLL_URL,
     CAPTCHA_SESSION_URL,
     DCCON_INFO_URL,
     GALLOG_BASE_URL,
@@ -59,6 +61,7 @@ const GALL_TYPE = {
 
 const DELAY_TIME = 2000;
 const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
+const TIME_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
 
 class DcinsideApi {
@@ -142,12 +145,19 @@ class DcinsideApi {
             }
         }
 
+        if (options.poll) {
+            const { no } = await this.requestRegistPoll(id, Object.assign(options.poll, { multiSelectLength: 2, usePreview: true }));
+
+            requestConfig.poll = no;
+            requestConfig.memo = `<iframe src="${BASE_URL}/board/poll/edit_vote?no=${no}"></iframe><br><br>${memo}`;
+        }
+
         if (options.video) {
             const res = await this.requestUploadVideo(id, options.video.path);
-            const { no } = await this.requestRegistVideo(id, res.thum_url_arr[0], options.video.comment, options.video.canDownload, res.file_no);
+            const { no } = await this.requestRegistVideo(id, Object.assign(options.video, { thum_url: res.thum_url_arr[0], comment: options.video.comment, canDownload: options.video.canDownload, file_no: res.file_no }));
 
             requestConfig.movieIdx = `[[${res.file_no},${no}]]`;
-            requestConfig.memo = `<iframe src="https://gall.dcinside.com/board/movie/movie?no=${no}"></iframe>${memo}`;
+            requestConfig.memo = `<iframe src="${BASE_URL}/board/movie/movie?no=${no}"></iframe>${memo}`;
         }
 
         if (options.headtext) requestConfig.headtext = options.headtext;
@@ -579,18 +589,74 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestRegistVideo(id, thum_url, comment, canDownload = true, file_no) {
+    async requestRegistVideo(id, options = {}) {
         const { type } = await this.checkVaildGall(id);
 
         const res = await this.axios({
             method: 'POST',
             url: REGIST_VIDEO_URL,
             data: {
-                thum_url,
-                file_no,
+                thum_url: options.thum_url,
+                file_no: options.file_no,
                 gallery_id: id,
-                movie_comment: comment,
-                download_y: canDownload ? 1 : 0,
+                movie_comment: options.comment,
+                download_y: options.canDownload ? 1 : 0,
+                _GALLTYPE_: type
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
+    async requestRegistPoll(id, options = {}) {
+        const { type } = await this.checkVaildGall(id)
+
+        if (options.endTime && !options.notUseEndTime && !options.endTime.match(TIME_PATTERN)) {
+            throw new Error('Invalid Time Format (yyyy-mm-dd-hh-mm)');
+        }
+
+        const times = options.endTime?.split('-') || []
+
+        const requestConfig = {
+            gallery_id: id,
+            poll_title: options.title,
+            end_date: times.slice(0, 3).join('-'),
+            end_hour: times.slice(3)[0],
+            end_min: times.slice(3)[1],
+            chk_multi: options.useMultiSelect,
+            multi_cnt: options.multiSelectLength,
+            grant_member: options.onlyGonik ? 'M' : 'A',
+            chk_end_time: options.notUseEndTime,
+            chk_preveal: options.usePreview,
+            'item_name[]': [],
+            _GALLTYPE_: type
+        }
+
+        for (const items of options.items) {
+            requestConfig['item_name[]'].push(items);
+        }
+
+        const res = await this.axios({
+            method: 'POST',
+            url: REGIST_POLL_URL,
+            data: requestConfig,
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
+    async requestEndPoll(id, no) {
+        const { type } = await this.checkVaildGall(id);
+
+        const res = await this.axios({
+            method: 'POST',
+            url: END_POLL_URL,
+            data: {
+                id,
+                no,
+                password: this.password,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()

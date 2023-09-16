@@ -15,6 +15,8 @@ module.exports = {
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     PAPAGO_OCR_URL,
+    REGIST_POLL_URL: `${BASE_URL}/ajax/poll_ajax/regist_poll`,
+    END_POLL_URL: `${BASE_URL}/ajax/poll_ajax/end_password_submit`,
     LIST_POST_URL: `${MOBILE_BASE_URL}/ajax/response-list`,
     RANK_MAJOR_URL: `${JSON_BASE_URL}/ranking_gallery.php`,
     RANK_MINOR_URL: `${JSON_BASE_URL}/mgallmain/mgallery_ranking.php`,

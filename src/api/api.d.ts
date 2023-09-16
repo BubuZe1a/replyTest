@@ -4,26 +4,62 @@ export interface ArticleOptions {
   image: string;
   video: {
     path: string;
-    comment: string | number;
-    canDownload: boolean;
+    comment?: string | number;
+    canDownload?: boolean;
   };
-  headtext: number;
+  poll: PollOptions;
+  headtext?: number;
+}
+
+export interface VideoOptions {
+  thum_url: string;
+  comment: string | number;
+  canDownload: boolean;
+  file_no: number;
+}
+
+export interface PollOptions {
+  title: any;
+  items: FixedLengthArray<any, 20>;
+  endTime: string;
+  notUseEndTime?: boolean;
+  onlyGonik?: boolean;
+  usePreview?: boolean;
+  useMultiSelect?: boolean;
+  multiSelectLength?: number;
 }
 
 export interface DcinsideApiOptions {
   username: string | number;
   password: string | number;
-  captcha: boolean;
-  proxy: {
+  captcha?: boolean;
+  proxy?: {
     protocol: string;
     host: string;
     port: number;
   };
 }
 
-export type gallogType = 'write' | 'delete' | 'check';
+export type ArrayLengthMutationKeys =
+  | 'splice'
+  | 'push'
+  | 'pop'
+  | 'shift'
+  | 'unshift'
+  | number;
 
-export type captchaType = 'write' | 'recommend' | 'comment';
+export type ArrayItems<T extends Array<any>> = T extends Array<infer TItems>
+  ? TItems
+  : never;
+
+export type FixedLengthArray<T extends any[]> = Pick<
+  T,
+  Exclude<keyof T, ArrayLengthMutationKeys>
+> & { [Symbol.iterator]: () => IterableIterator<ArrayItems<T>> };
+
+export type GallogType = 'write' | 'delete' | 'check';
+
+export type CaptchaType = 'write' | 'recommend' | 'comment';
 
 export class DcinsideApi {
   constructor(options: DcinsideApiOptions);
@@ -94,13 +130,11 @@ export class DcinsideApi {
 
   public requestUploadVideo(id: string | number, path: string);
 
-  public requestRegistVideo(
-    id: string | number,
-    thum_url: string,
-    comment: string | number,
-    canDownload: boolean,
-    file_no: number
-  );
+  public requestRegistVideo(id: string | number, options: VideoOptions);
+
+  public requestRegistPoll(id: string | number, options: PollOptions);
+
+  public requestEndPoll(id: string | number, no: number);
 
   public requestHit(id: string | number, no: number);
 
@@ -109,7 +143,7 @@ export class DcinsideApi {
   public requestCaptchaSession(
     id: string | number,
     type: string,
-    captcha_type: captchaType,
+    captcha_type: CaptchaType,
     ci_t: string,
     cookie: string
   );
@@ -134,7 +168,7 @@ export class DcinsideApi {
 
   public parseDelete(url: string);
 
-  public getGallogApi(userid: string | number, type: gallogType);
+  public getGallogApi(userid: string | number, type: GallogType);
 
   public generateRandomString();
 
