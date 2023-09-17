@@ -1,5 +1,6 @@
 const BASE_URL = 'https://gall.dcinside.com';
 const MOBILE_BASE_URL = 'https://m.dcinside.com';
+const SEARCH_BASE_URL = 'https://search.dcinside.com';
 const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
@@ -12,9 +13,11 @@ module.exports = {
     BASE_URL,
     UPLOAD_BASE_URL,
     M4UP_BASE_URL,
+    SEARCH_BASE_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     PAPAGO_OCR_URL,
+    AUTO_SEARCH_URL: `${SEARCH_BASE_URL}/autocomplete`,
     REGIST_POLL_URL: `${BASE_URL}/ajax/poll_ajax/regist_poll`,
     END_POLL_URL: `${BASE_URL}/ajax/poll_ajax/end_password_submit`,
     LIST_POST_URL: `${MOBILE_BASE_URL}/ajax/response-list`,

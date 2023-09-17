@@ -77,7 +77,8 @@ export class DcinsideApi {
     id: string | number,
     no: number,
     subject: string,
-    memo: string
+    memo: string,
+    options?: Pick<ArticleOptions, 'headtext'>
   );
 
   public requestArticleList(
@@ -149,6 +150,8 @@ export class DcinsideApi {
   );
 
   public requestOcr(path: string);
+
+  public requestSearch(query: string | number);
 
   public requestRankingMajor();
 

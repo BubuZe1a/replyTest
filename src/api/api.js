@@ -9,6 +9,8 @@ const {
     REGIST_POLL_URL,
     END_POLL_URL,
     CAPTCHA_SESSION_URL,
+    SEARCH_BASE_URL,
+    AUTO_SEARCH_URL,
     DCCON_INFO_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
@@ -62,6 +64,7 @@ const GALL_TYPE = {
 const DELAY_TIME = 2000;
 const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
 const TIME_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/;
+const JSON_PATTERN = /\(\)|[();]/g;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
 
 class DcinsideApi {
@@ -172,7 +175,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleEdit(id, no, subject, memo) {
+    async requestArticleEdit(id, no, subject, memo, options = {}) {
         const { type } = await this.checkVaildGall(id);
 
         const { data } = await this.axios({
@@ -199,7 +202,7 @@ class DcinsideApi {
                 memo,
                 no,
                 key,
-                headtext: 0,
+                headtext: options.headtext || 0,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
@@ -746,6 +749,20 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestSearch(query) {
+        const res = await this.axios({
+            method: 'GET',
+            url: AUTO_SEARCH_URL,
+            params: {
+                k: encodeURIComponent(query),
+                t: Date.now()
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return this.escapeJson(res.data);
+    }
+
     async requestRankingMajor() {
         const res = await this.axios({
             method: 'GET',
@@ -876,7 +893,7 @@ class DcinsideApi {
     }
 
     escapeJson(data) {
-        return JSON.parse(data.replace(/[()]/g, ''));
+        return JSON.parse(data.replace(JSON_PATTERN, ''));
     }
 
     getGallogApi(userid, type) {
@@ -900,9 +917,8 @@ class DcinsideApi {
             'X-Requested-With': 'XMLHttpRequest'
         }
 
-        if (url) {
-            header.Referer = url
-        }
+        if (url) header.Referer = url;
+
 
         return header;
     }
