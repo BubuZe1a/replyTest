@@ -8,7 +8,7 @@ export interface ArticleOptions {
     canDownload?: boolean;
   };
   poll: PollOptions;
-  headtext?: number;
+  headtext: number;
 }
 
 export interface VideoOptions {
@@ -21,7 +21,7 @@ export interface VideoOptions {
 export interface PollOptions {
   title: any;
   items: FixedLengthArray<any, 20>;
-  endTime: string;
+  endTime?: string;
   notUseEndTime?: boolean;
   onlyGonik?: boolean;
   usePreview?: boolean;
@@ -84,7 +84,8 @@ export class DcinsideApi {
   public requestArticleList(
     id: string | number,
     recommend?: boolean,
-    page?: number
+    page?: number,
+    listNum?: number
   );
 
   public requestArticleInfo(id: string | number, no: number);

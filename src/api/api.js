@@ -112,7 +112,7 @@ class DcinsideApi {
             block_key: data,
             service_code: neverKey,
             _GALLTYPE_: type,
-            headtext: 0,
+            headtext: options.headtext || 0,
             mode: 'W'
         }
 
@@ -163,8 +163,6 @@ class DcinsideApi {
             requestConfig.memo = `<iframe src="${BASE_URL}/board/movie/movie?no=${no}"></iframe>${memo}`;
         }
 
-        if (options.headtext) requestConfig.headtext = options.headtext;
-
         const res = await this.axios({
             method: 'POST',
             url: POST_URL,
@@ -211,7 +209,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleList(id, recommend = false, page = 1) {
+    async requestArticleList(id, recommend = false, page = 1, listNum = 50) {
         const { type } = await this.checkVaildGall(id);
 
         if (type === GALL_TYPE.MINI) id = 'mi$' + id;
@@ -224,7 +222,7 @@ class DcinsideApi {
                 page,
                 recommend: recommend ? 1 : 0
             },
-            headers: this.generateDefaultHeaders()
+            headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}` }
         });
 
         return res.data.gall_list.data;
@@ -819,7 +817,6 @@ class DcinsideApi {
     }
 
     async parseWrite(url) {
-        const headtextList = [];
         const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
         const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
@@ -846,7 +843,7 @@ class DcinsideApi {
         };
     }
 
-    async parseView(url, up = true) {
+    async parseView(url, up) {
         const res = await this.axios.get(url);
         const $ = cheerio.load(res.data);
         const params = new URL(url).searchParams;
@@ -918,7 +915,6 @@ class DcinsideApi {
         }
 
         if (url) header.Referer = url;
-
 
         return header;
     }
