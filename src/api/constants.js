@@ -5,7 +5,7 @@ const UPLOAD_BASE_URL = 'https://upimg.dcinside.com';
 const M4UP_BASE_URL = 'https://m4up1.dcinside.com';
 const GALLOG_BASE_URL = 'https://gallog.dcinside.com/';
 const IMG2_BASE_URL = 'https://img2.dcinside.com/';
-const JSON_BASE_URL = 'https://json2.dcinside.com/json1';
+const JSON_BASE_URL = 'https://json2.dcinside.com';
 const DCCON_BASE_URL = 'https://dccon.dcinside.com';
 const PAPAGO_OCR_URL = 'https://apis.naver.com/papago/papago_app/ocr/detect';
 
@@ -15,15 +15,25 @@ module.exports = {
     M4UP_BASE_URL,
     SEARCH_BASE_URL,
     GALLOG_BASE_URL,
+    MOBILE_BASE_URL,
+    DCCON_BASE_URL,
     IMG2_BASE_URL,
+    JSON_BASE_URL,
     PAPAGO_OCR_URL,
+    INFO_MAJOR_URL: `${MOBILE_BASE_URL}/major/gallinfo`,
+    INFO_MINOR_URL: `${MOBILE_BASE_URL}/minor/gallinfo`,
+    _GALL_URL: `${BASE_URL}/ajax/gallery_top_ajax/relation`,
     AUTO_SEARCH_URL: `${SEARCH_BASE_URL}/autocomplete`,
+    VOTE_POLL_URL: `${BASE_URL}/ajax/poll_ajax/update_vote`,
     REGIST_POLL_URL: `${BASE_URL}/ajax/poll_ajax/regist_poll`,
     END_POLL_URL: `${BASE_URL}/ajax/poll_ajax/end_password_submit`,
     LIST_POST_URL: `${MOBILE_BASE_URL}/ajax/response-list`,
-    RANK_MAJOR_URL: `${JSON_BASE_URL}/ranking_gallery.php`,
-    RANK_MINOR_URL: `${JSON_BASE_URL}/mgallmain/mgallery_ranking.php`,
-    RANK_MINI_URL: `${JSON_BASE_URL}/migallmain/migallery_ranking.php`,
+    RANK_MAJOR_URL: `${JSON_BASE_URL}/json1/ranking_gallery.php`,
+    RANK_MINOR_URL: `${JSON_BASE_URL}/json1/mgallmain/mgallery_ranking.php`,
+    RANK_MINI_URL: `${JSON_BASE_URL}/json1/migallmain/migallery_ranking.php`,
+    HOT_RANK_MAJOR_URL: `${JSON_BASE_URL}/json0/gallmain/gallery_hot_day.php`,
+    HOT_RANK_MINOR_URL: `${JSON_BASE_URL}/json0/mgallmain/mgallery_hot.php`,
+    HOT_RANK_MINI_URL: `${JSON_BASE_URL}/json0/mgallmain/migallery_hot.php`,
     DCCON_INFO_URL: `${DCCON_BASE_URL}/index/package_detail`,
     CAPTCHA_SESSION_URL: `${BASE_URL}/kcaptcha/session`,
     CAPTCHA_URL: `${BASE_URL}/kcaptcha/image/?gall_id=`,
@@ -48,6 +58,7 @@ module.exports = {
     COMMENT_POST_URL: `${BASE_URL}/board/forms/comment_submit`,
     COMMENT_DELETE_URL: `${BASE_URL}/board/comment/comment_delete_submit`,
     COMMENT_LIST_URL: `${BASE_URL}/board/comment/`,
+    DCCON_SEARCH_URL: `${BASE_URL}/dccon/search`,
     DCCON_POST_URL: `${BASE_URL}/dccon/insert_icon`,
     DCCON_LIST_URL: `${BASE_URL}/dccon/lists`,
     PORN_REPORT_URL: `${BASE_URL}/singo/singo_porno`,

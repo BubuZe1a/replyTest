@@ -1,4 +1,4 @@
-import { CreateAxiosDefaults } from 'axios';
+import { CreateAxiosDefaults, AxiosRequestConfig } from 'axios';
 
 export interface ArticleOptions {
   image: string;
@@ -61,8 +61,12 @@ export type GallogType = 'write' | 'delete' | 'check';
 
 export type CaptchaType = 'write' | 'recommend' | 'comment';
 
+export type DcconSearchType = 'title' | 'nick_name' | 'tags';
+
 export class DcinsideApi {
   constructor(options: DcinsideApiOptions);
+
+  public requestAxios(options: AxiosRequestConfig);
 
   public setAxios(options: CreateAxiosDefaults);
 
@@ -118,6 +122,12 @@ export class DcinsideApi {
 
   public requestDcconList(page?: number);
 
+  public requestDcconSearch(
+    query: string | number,
+    page?: number,
+    type?: DcconSearchType
+  );
+
   public requestVote(id: string | number, no: number, isUp: boolean);
 
   public requestGuestbookWrite(
@@ -138,6 +148,12 @@ export class DcinsideApi {
 
   public requestEndPoll(id: string | number, no: number);
 
+  public requestPollVote(id: string | number, idx: number);
+
+  public requestRelationGall(id: string | number);
+
+  public requestGallInfo(id: string | number);
+
   public requestHit(id: string | number, no: number);
 
   public requestBest(id: string | number, no: number);
@@ -154,11 +170,11 @@ export class DcinsideApi {
 
   public requestSearch(query: string | number);
 
-  public requestRankingMajor();
+  public requestRankingMajor(hot?: boolean);
 
-  public requestRankingMinor();
+  public requestRankingMinor(hot?: boolean);
 
-  public requestRankingMini();
+  public requestRankingMini(hot?: boolean);
 
   public checkVaildGall(id: string | number);
 

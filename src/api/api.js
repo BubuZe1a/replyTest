@@ -8,10 +8,19 @@ const {
     BASE_URL,
     REGIST_POLL_URL,
     END_POLL_URL,
+    RELATION_GALL_URL,
+    INFO_MAJOR_URL,
+    INFO_MINOR_URL,
     CAPTCHA_SESSION_URL,
+    VOTE_POLL_URL,
+    HOT_RANK_MAJOR_URL,
+    DCCON_BASE_URL,
+    HOT_RANK_MINI_URL,
+    HOT_RANK_MINOR_URL,
     SEARCH_BASE_URL,
     AUTO_SEARCH_URL,
     DCCON_INFO_URL,
+    DCCON_SEARCH_URL,
     GALLOG_BASE_URL,
     IMG2_BASE_URL,
     LIST_POST_URL,
@@ -66,6 +75,7 @@ const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
 const TIME_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/;
 const JSON_PATTERN = /\(\)|[();]/g;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
+const NO_PATTERN = /open_relation\((\d+)\)/;
 
 class DcinsideApi {
     constructor(options = {}) {
@@ -79,6 +89,11 @@ class DcinsideApi {
 
     setAxios(options = {}) {
         this.axios = axios.create(options);
+    }
+
+    async requestAxios(options = {}) {
+        const res = await this.axios(options);
+        return res.data;
     }
 
     async requestArticle(id, subject, memo, options = {}) {
@@ -472,6 +487,21 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestDcconSearch(query, page = 1, type = 'title') {
+        const res = await this.axios({
+            method: 'POST',
+            url: DCCON_SEARCH_URL,
+            data: {
+                keyword: query,
+                type,
+                page,
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data.data.list;
+    }
+
     async requestVote(id, no, isUp = true) {
         const { type, viewUrl } = await this.checkVaildGall(id);
 
@@ -666,6 +696,55 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestPollVote(id, idx) {
+        const res = await this.axios({
+            method: 'POST',
+            url: VOTE_POLL_URL,
+            data: {
+                poll_idx: id,
+                'check_vote[]': idx,
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
+    async requestRelationGall(id) {
+        const { type, listUrl } = await this.checkVaildGall(id);
+
+        const { gallNo } = await this.parseList(listUrl);
+
+        const res = await this.axios({
+            method: 'POST',
+            url: RELATION_GALL_URL,
+            data: {
+                gall_no: gallNo,
+                gall_type: type
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
+    async requestGallInfo(id) {
+        const { type } = await this.checkVaildGall(id);
+
+        const url = (type === GALL_TYPE.MINOR || type === GALL_TYPE.MINI) ? INFO_MINOR_URL : INFO_MAJOR_URL;
+
+        if (type === GALL_TYPE.MINI) id = 'mi$' + id;
+
+        const res = await this.axios({
+            method: 'POST',
+            url,
+            data: { id },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data;
+    }
+
     async requestHit(id, no) {
         const { type } = await this.checkVaildGall(id);
 
@@ -761,31 +840,31 @@ class DcinsideApi {
         return this.escapeJson(res.data);
     }
 
-    async requestRankingMajor() {
+    async requestRankingMajor(hot) {
         const res = await this.axios({
             method: 'GET',
-            url: RANK_MAJOR_URL
+            url: hot ? HOT_RANK_MAJOR_URL : RANK_MAJOR_URL
         });
 
-        return this.escapeJson(res.data);
+        return hot ? res.data : this.escapeJson(res.data);
     }
 
-    async requestRankingMinor() {
+    async requestRankingMinor(hot) {
         const res = await this.axios({
             method: 'GET',
-            url: RANK_MINOR_URL
+            url: hot ? HOT_RANK_MINOR_URL : RANK_MINOR_URL
         });
 
-        return this.escapeJson(res.data);
+        return hot ? res.data : this.escapeJson(res.data);
     }
 
-    async requestRankingMini() {
+    async requestRankingMini(hot) {
         const res = await this.axios({
             method: 'GET',
-            url: RANK_MINI_URL
+            url: hot ? HOT_RANK_MINI_URL : RANK_MINI_URL
         });
 
-        return this.escapeJson(res.data);
+        return hot ? res.data : this.escapeJson(res.data);
     }
 
     async checkVaildGall(id) {
@@ -793,7 +872,9 @@ class DcinsideApi {
             const res = await this.axios.get(LIST_MAJOR_URL + id);
 
             if (res.data.includes('mgallery/')) {
-                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id };
+                return {
+                    type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id
+                };
             } else {
                 return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id };
             }
@@ -838,6 +919,7 @@ class DcinsideApi {
 
         return {
             cookie,
+            gallNo: res.data.match(NO_PATTERN)[1],
             ci_t: cookie.split('ci_c=')[1].split(';')[0],
             e_s_n_o: $('input[name="e_s_n_o"]').attr('value')
         };
