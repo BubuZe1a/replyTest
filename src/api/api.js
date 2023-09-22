@@ -7,7 +7,13 @@ const { jx, xc, kx } = require('../utils/decrypt.js');
 const {
     BASE_URL,
     REGIST_POLL_URL,
+    JSON_BASE_URL,
+    LIST_GUESTBOOK_URL,
+    MOBILE_BASE_URL,
     END_POLL_URL,
+    NEW_MAJOR_URL,
+    NEW_MINI_URL,
+    NEW_MINOR_URL,
     RELATION_GALL_URL,
     INFO_MAJOR_URL,
     INFO_MINOR_URL,
@@ -75,6 +81,7 @@ const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
 const TIME_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/;
 const JSON_PATTERN = /\(\)|[();]/g;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
+const GALLOG_PATTERN = /<strong class="nick_name">(.*?)<\/strong>/;
 const NO_PATTERN = /open_relation\((\d+)\)/;
 
 class DcinsideApi {
@@ -574,6 +581,24 @@ class DcinsideApi {
         return res.data;
     }
 
+    async requestGuestbookList(userid, page = 1) {
+        await this.checkVaildUser(userid);
+
+        const res = await this.axios({
+            method: 'POST',
+            url: LIST_GUESTBOOK_URL,
+            data: {
+                g_id: userid,
+                list_more: 1,
+                page,
+            },
+            headers: this.generateDefaultHeaders()
+        });
+
+        return res.data.gallog_list.data;
+    }
+
+
     async requestUploadImage(id, path) {
         const { type, writeUrl } = await this.checkVaildGall(id);
 
@@ -891,7 +916,7 @@ class DcinsideApi {
     async checkVaildUser(userid) {
         try {
             const res = await this.axios.get(GALLOG_BASE_URL + userid);
-            return /<strong class="nick_name">(.*?)<\/strong>/.exec(res.data)[1];
+            return GALLOG_PATTERN.exec(res.data)[1];
         } catch {
             throw new Error(`유저를 찾을 수 없습니다 ${userid}`);
         }

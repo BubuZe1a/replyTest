@@ -138,6 +138,8 @@ export class DcinsideApi {
 
   public removeGuestbookWrite(userid: string | number, headnum: number);
 
+  public requestGuestbookList(userid: string | number, page?: number);
+
   public requestUploadImage(id: string | number, path: string);
 
   public requestUploadVideo(id: string | number, path: string);
