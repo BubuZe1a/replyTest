@@ -8,10 +8,12 @@ const IMG2_BASE_URL = 'https://img2.dcinside.com/';
 const JSON_BASE_URL = 'https://json2.dcinside.com';
 const DCCON_BASE_URL = 'https://dccon.dcinside.com';
 const PAPAGO_OCR_URL = 'https://apis.naver.com/papago/papago_app/ocr/detect';
+const MOBILE_AGENT = 'Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36';
 
 module.exports = {
     BASE_URL,
     UPLOAD_BASE_URL,
+    MOBILE_AGENT,
     M4UP_BASE_URL,
     SEARCH_BASE_URL,
     GALLOG_BASE_URL,
@@ -23,6 +25,7 @@ module.exports = {
     INFO_MAJOR_URL: `${MOBILE_BASE_URL}/major/gallinfo`,
     INFO_MINOR_URL: `${MOBILE_BASE_URL}/minor/gallinfo`,
     RELATION_GALL_URL: `${BASE_URL}/ajax/gallery_top_ajax/relation`,
+    SEARCH_URL: `${SEARCH_BASE_URL}/ajax/getSearch`,
     AUTO_SEARCH_URL: `${SEARCH_BASE_URL}/autocomplete`,
     VOTE_POLL_URL: `${BASE_URL}/ajax/poll_ajax/update_vote`,
     REGIST_POLL_URL: `${BASE_URL}/ajax/poll_ajax/regist_poll`,
@@ -32,7 +35,7 @@ module.exports = {
     RANK_MAJOR_URL: `${JSON_BASE_URL}/json1/ranking_gallery.php`,
     RANK_MINOR_URL: `${JSON_BASE_URL}/json1/mgallmain/mgallery_ranking.php`,
     RANK_MINI_URL: `${JSON_BASE_URL}/json1/migallmain/migallery_ranking.php`,
-    HOT_RANK_MAJOR_URL: `${JSON_BASE_URL}/json0/gallmain/gallery_hot_day.php`,
+    HOT_RANK_MAJOR_URL: `${JSON_BASE_URL}/json0/gallmain/gallery_hot.php`,
     HOT_RANK_MINOR_URL: `${JSON_BASE_URL}/json0/mgallmain/mgallery_hot.php`,
     HOT_RANK_MINI_URL: `${JSON_BASE_URL}/json0/mgallmain/migallery_hot.php`,
     NEW_MAJOR_URL: `${JSON_BASE_URL}/json1/newgall_list.php`,

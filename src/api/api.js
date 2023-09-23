@@ -9,6 +9,7 @@ const {
     REGIST_POLL_URL,
     JSON_BASE_URL,
     LIST_GUESTBOOK_URL,
+    MOBILE_AGENT,
     MOBILE_BASE_URL,
     END_POLL_URL,
     NEW_MAJOR_URL,
@@ -17,6 +18,7 @@ const {
     RELATION_GALL_URL,
     INFO_MAJOR_URL,
     INFO_MINOR_URL,
+    SEARCH_URL,
     CAPTCHA_SESSION_URL,
     VOTE_POLL_URL,
     HOT_RANK_MAJOR_URL,
@@ -134,7 +136,7 @@ class DcinsideApi {
             block_key: data,
             service_code: neverKey,
             _GALLTYPE_: type,
-            headtext: options.headtext || 0,
+            headtext: options.headtext ?? 0,
             mode: 'W'
         }
 
@@ -211,7 +213,7 @@ class DcinsideApi {
 
         const key = data.split('||')[1];
 
-        if (key === 'captcha') throw new Error('Captcha');
+        if (key.length !== 82) throw new Error(`Failed Key: ${key}`);
 
         const res = await this.axios({
             method: 'POST',
@@ -222,7 +224,7 @@ class DcinsideApi {
                 memo,
                 no,
                 key,
-                headtext: options.headtext || 0,
+                headtext: options.headtext ?? 0,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
@@ -232,7 +234,9 @@ class DcinsideApi {
     }
 
     async requestArticleList(id, recommend = false, page = 1, listNum = 50) {
-        const { type } = await this.checkVaildGall(id);
+        const { type, listUrlAn } = await this.checkVaildGall(id);
+
+        const csrfToken = await this.parseList(listUrlAn, true);
 
         if (type === GALL_TYPE.MINI) id = 'mi$' + id;
 
@@ -244,7 +248,7 @@ class DcinsideApi {
                 page,
                 recommend: recommend ? 1 : 0
             },
-            headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}` }
+            headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}; best_cate=B`, 'X-Csrf-Token': csrfToken }
         });
 
         return res.data.gall_list.data;
@@ -672,7 +676,7 @@ class DcinsideApi {
             throw new Error('Invalid Time Format (yyyy-mm-dd-hh-mm)');
         }
 
-        const times = options.endTime?.split('-') || []
+        const times = options.endTime?.split('-') || [];
 
         const requestConfig = {
             gallery_id: id,
@@ -851,7 +855,23 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestSearch(query) {
+    async requestSearch(query, page = 1, listNum = 50) {
+        const res = await this.axios({
+            method: 'GET',
+            url: `${SEARCH_URL}/p/${page}/n/${listNum}/q/${query}`,
+            headers: this.generateDefaultHeaders()
+        });
+
+        const removeHights = res.data.channel.item.map(item => {
+            item.content = item.content.replace(/<\/?b>/g, '');
+            item.title = item.title.replace(/<\/?b>/g, '');
+            return item;
+        });
+
+        return removeHights;
+    }
+
+    async requestGlobalSearch(query) {
         const res = await this.axios({
             method: 'GET',
             url: AUTO_SEARCH_URL,
@@ -892,23 +912,48 @@ class DcinsideApi {
         return hot ? res.data : this.escapeJson(res.data);
     }
 
+    async requestMajorNew() {
+        const res = await this.axios({
+            method: 'GET',
+            url: NEW_MAJOR_URL,
+        });
+
+        return this.escapeJson(res.data);
+    }
+
+    async requestMinorNew() {
+        const res = await this.axios({
+            method: 'GET',
+            url: NEW_MINOR_URL
+        });
+
+        return this.escapeJson(res.data);
+    }
+
+    async requestMiniNew() {
+        const res = await this.axios({
+            method: 'GET',
+            url: NEW_MINI_URL
+        });
+
+        return this.escapeJson(res.data);
+    }
+
     async checkVaildGall(id) {
         try {
             const res = await this.axios.get(LIST_MAJOR_URL + id);
 
             if (res.data.includes('mgallery/')) {
-                return {
-                    type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id
-                };
+                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
             } else {
-                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id };
+                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
             }
         } catch {
             try {
                 await this.axios.get(LIST_MINI_URL + id);
-                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id };
+                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id, listUrlAn: `${MOBILE_BASE_URL}/mini/${id}` };
             } catch {
-                throw new Error(`갤러리를 찾을 수 없습니다. ${id}`);
+                throw new Error(`갤러리를 찾을 수 없습니다: ${id}`);
             }
         }
     }
@@ -918,7 +963,7 @@ class DcinsideApi {
             const res = await this.axios.get(GALLOG_BASE_URL + userid);
             return GALLOG_PATTERN.exec(res.data)[1];
         } catch {
-            throw new Error(`유저를 찾을 수 없습니다 ${userid}`);
+            throw new Error(`유저를 찾을 수 없습니다: ${userid}`);
         }
     }
 
@@ -937,9 +982,18 @@ class DcinsideApi {
         };
     }
 
-    async parseList(url) {
-        const res = await this.axios.get(url);
+    async parseList(url, mobile) {
+        const config = {
+            headers: {}
+        };
+
+        if (mobile) config.headers['User-Agent'] = MOBILE_AGENT;
+
+        const res = await this.axios.get(url, config);
         const $ = cheerio.load(res.data);
+
+        if (mobile) return $('meta[name="csrf-token"]').attr('content');
+
         const cookie = res.headers['set-cookie'].map((c) => c.split(';')[0]).join('; ');
 
         return {

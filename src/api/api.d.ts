@@ -170,7 +170,9 @@ export class DcinsideApi {
 
   public requestOcr(path: string);
 
-  public requestSearch(query: string | number);
+  public requestSearch(query: string | number, page?: number, listNum?: number);
+
+  public requestGlobalSearch(query: string | number);
 
   public requestRankingMajor(hot?: boolean);
 
@@ -178,15 +180,21 @@ export class DcinsideApi {
 
   public requestRankingMini(hot?: boolean);
 
+  public requestMajorNew();
+
+  public requestMinorNew();
+
+  public requestMiniNew();
+
   public checkVaildGall(id: string | number);
 
   public checkVaildUser(userid: string | number);
 
   public parseWrite(url: string);
 
-  public parseList(url: string);
+  public parseList(url: string, mobile?: boolean);
 
-  public parseView(url: string, up: boolean);
+  public parseView(url: string, up?: boolean);
 
   public parseDelete(url: string);
 
