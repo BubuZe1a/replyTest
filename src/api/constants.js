@@ -8,7 +8,7 @@ const IMG2_BASE_URL = 'https://img2.dcinside.com/';
 const JSON_BASE_URL = 'https://json2.dcinside.com';
 const DCCON_BASE_URL = 'https://dccon.dcinside.com';
 const PAPAGO_OCR_URL = 'https://apis.naver.com/papago/papago_app/ocr/detect';
-const MOBILE_AGENT = 'Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36';
+const MOBILE_AGENT = '(Android)';
 
 module.exports = {
     BASE_URL,

@@ -92,7 +92,7 @@ class DcinsideApi {
         this.password = options.password;
         this.captcha = options.captcha;
         this.axios = axios.create({
-            proxy: options.proxy
+            proxy: options.proxy,
         });
     }
 
@@ -121,7 +121,7 @@ class DcinsideApi {
                 block_key: blockKey,
                 r_key: rKey
             },
-            headers: header
+            headers: header,
         });
 
         await delay(DELAY_TIME);
@@ -206,7 +206,8 @@ class DcinsideApi {
             data: {
                 id,
                 no,
-                password: this.password
+                password: this.password,
+                _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
         });
@@ -233,7 +234,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleList(id, recommend = false, page = 1, listNum = 50) {
+    async requestArticleList(id, recommend = false, page = 1, listNum = 50, headid) {
         const { type, listUrlAn } = await this.checkVaildGall(id);
 
         const csrfToken = await this.parseList(listUrlAn, true);
@@ -246,6 +247,7 @@ class DcinsideApi {
             data: {
                 id,
                 page,
+                ...headid ? { headid } : {},
                 recommend: recommend ? 1 : 0
             },
             headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}; best_cate=B`, 'X-Csrf-Token': csrfToken }
@@ -436,7 +438,7 @@ class DcinsideApi {
                 cmt_id: id,
                 cmt_no: no,
                 comment_page: page,
-                _GALLTYPE_: type
+                _GALLTYPE_: type,
             },
             headers: this.generateDefaultHeaders(viewUrl + `&no=${no}`)
         });
@@ -659,8 +661,8 @@ class DcinsideApi {
                 thum_url: options.thum_url,
                 file_no: options.file_no,
                 gallery_id: id,
-                movie_comment: options.comment,
-                download_y: options.canDownload ? 1 : 0,
+                movie_comment: options.comment ?? '',
+                download_y: options.canDownload ? 1 : 0 ?? 1,
                 _GALLTYPE_: type
             },
             headers: this.generateDefaultHeaders()
@@ -825,7 +827,7 @@ class DcinsideApi {
             method: 'GET',
             url: CAPTCHA_URL + `${id}&kcaptcha_type=${captcha_type}&time=${(new Date).getTime()}&_GALLTYPE_=${type}`,
             headers: { ...this.generateDefaultHeaders(), cookie },
-            responseType: 'arraybuffer'
+            responseType: 'arraybuffer',
         });
 
         return res;
@@ -1016,7 +1018,7 @@ class DcinsideApi {
             e_s_n_o: $('input[name="e_s_n_o"]').attr('value'),
             cur_t: $('#cur_t').attr('value'),
             serviceCode: $('input[name="service_code"]').attr('value'),
-            secretKey: res.data.match(KEY_PATTERN)[1],
+            secretKey: res.data.match(KEY_PATTERN) ? res.data.match(KEY_PATTERN)[1] : null,
             longKey: {
                 name: $('#_view_form_').contents().eq(49).attr('name'),
                 value: $('#_view_form_').contents().eq(49).attr('value')
@@ -1046,7 +1048,7 @@ class DcinsideApi {
                     .match(SECRET_PATTERN)[1]
                     .split('=')[1],
             },
-            secretKey: res.data.match(KEY_PATTERN)[1]
+            secretKey: res.data.match(KEY_PATTERN) ? res.data.match(KEY_PATTERN)[1] : null
         };
     }
 
@@ -1072,7 +1074,7 @@ class DcinsideApi {
     generateDefaultHeaders(url) {
         const header = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
         }
 
         if (url) header.Referer = url;

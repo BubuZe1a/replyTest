@@ -1,4 +1,8 @@
-import { CreateAxiosDefaults, AxiosRequestConfig } from 'axios';
+import {
+  CreateAxiosDefaults,
+  AxiosRequestConfig,
+  AxiosProxyConfig,
+} from 'axios';
 
 export interface ArticleOptions {
   image: string;
@@ -33,11 +37,7 @@ export interface DcinsideApiOptions {
   username: string | number;
   password: string | number;
   captcha?: boolean;
-  proxy?: {
-    protocol: string;
-    host: string;
-    port: number;
-  };
+  proxy?: AxiosProxyConfig;
 }
 
 export type ArrayLengthMutationKeys =
@@ -89,7 +89,8 @@ export class DcinsideApi {
     id: string | number,
     recommend?: boolean,
     page?: number,
-    listNum?: number
+    listNum?: number,
+    headid?: number
   );
 
   public requestArticleInfo(id: string | number, no: number);
