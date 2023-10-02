@@ -83,6 +83,7 @@ const SECRET_PATTERN = /formData \+= "&(.*?)&_GALLTYPE_=/;
 const TIME_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/;
 const JSON_PATTERN = /\(\)|[();]/g;
 const KEY_PATTERN = /_d\('([^']+)'\)/;
+const TYPE_PATTERN = /var _GALLERY_TYPE_ = "([^"]+)";/;
 const GALLOG_PATTERN = /<strong class="nick_name">(.*?)<\/strong>/;
 const NO_PATTERN = /open_relation\((\d+)\)/;
 
@@ -235,7 +236,9 @@ class DcinsideApi {
     }
 
     async requestArticleList(id, recommend = false, page = 1, listNum = 50, headid) {
-        const { type, listUrlAn } = await this.checkVaildGall(id);
+        const { type, listUrlAn, listUrl } = await this.checkVaildGall(id);
+
+        const ignoreIndex = await this.ignoreIndex(listUrl);
 
         const csrfToken = await this.parseList(listUrlAn, true);
 
@@ -253,7 +256,7 @@ class DcinsideApi {
             headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}; best_cate=B`, 'X-Csrf-Token': csrfToken }
         });
 
-        return res.data.gall_list.data;
+        return res.data.gall_list.data.splice(ignoreIndex, ignoreIndex);
     }
 
     async requestArticleInfo(id, no) {
@@ -967,6 +970,24 @@ class DcinsideApi {
         } catch {
             throw new Error(`유저를 찾을 수 없습니다: ${userid}`);
         }
+    }
+
+    async ignoreIndex(url) {
+        const res = await this.axios.get(url);
+        const $ = cheerio.load(res.data);
+        const posts = $('.ub-content.us-post');
+
+        let i = 0;
+
+        while (i < posts.length) {
+            if (posts.eq(i).data('type') === 'icon_notice' || posts.eq(i).data('type') === 'icon_survey') {
+                i++;
+            } else {
+                break;
+            }
+        }
+
+        return res.data.match(TYPE_PATTERN)[1] === GALL_TYPE.MAJOR ? ++i : i;
     }
 
     async parseWrite(url) {

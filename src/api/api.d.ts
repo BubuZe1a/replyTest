@@ -191,6 +191,8 @@ export class DcinsideApi {
 
   public checkVaildUser(userid: string | number);
 
+  public ignoreIndex(url: string);
+
   public parseWrite(url: string);
 
   public parseList(url: string, mobile?: boolean);
