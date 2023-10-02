@@ -1,6 +1,6 @@
 {
   "name": "node-dcinside",
-  "version": "2.6.6",
+  "version": "2.6.7",
   "description": "Dcinside Unofficial Web Api",
   "main": "dist/index.js",
   "scripts": {
