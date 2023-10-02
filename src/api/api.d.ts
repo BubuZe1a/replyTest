@@ -203,6 +203,8 @@ export class DcinsideApi {
 
   public getGallogApi(userid: string | number, type: GallogType);
 
+  public removeItemsNext(arr: Array, index: number);
+
   public generateRandomString();
 
   public generateDefaultHeaders(url: string);

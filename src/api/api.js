@@ -235,7 +235,7 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleList(id, page = 1, recommend = false, listNum = 200, headid) {
+    async requestArticleList(id, page = 1, recommend = false, listNum = 50, headid) {
         const { type, listUrlAn, listUrl } = await this.checkVaildGall(id, page);
 
         const ignoreIndex = await this.ignoreIndex(listUrl);
@@ -256,7 +256,7 @@ class DcinsideApi {
             headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}; best_cate=B`, 'X-Csrf-Token': csrfToken }
         });
 
-        return ignoreIndex === 0 ? res.data.gall_list.data : res.data.gall_list.data.splice(ignoreIndex, ignoreIndex);
+        return this.removeItemsNext(res.data.gall_list.data, ignoreIndex);
     }
 
     async requestArticleInfo(id, no) {
@@ -1086,6 +1086,16 @@ class DcinsideApi {
             case 'check':
                 return GALLOG_BASE_URL + `${userid}/ajax/guestbook_ajax/chk_password`;
         }
+    }
+
+    removeItemsNext(arr, index) {
+        const result = [];
+
+        for (let i = index; i < arr.length; i++) {
+            result.push(arr[i]);
+        }
+
+        return result;
     }
 
     generateRandomString() {
