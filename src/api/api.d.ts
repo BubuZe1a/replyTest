@@ -87,8 +87,8 @@ export class DcinsideApi {
 
   public requestArticleList(
     id: string | number,
-    recommend?: boolean,
     page?: number,
+    recommend?: boolean,
     listNum?: number,
     headid?: number
   );
@@ -187,7 +187,7 @@ export class DcinsideApi {
 
   public requestMiniNew();
 
-  public checkVaildGall(id: string | number);
+  public checkVaildGall(id: string | number, page?: number);
 
   public checkVaildUser(userid: string | number);
 

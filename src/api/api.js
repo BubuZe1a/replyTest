@@ -235,8 +235,8 @@ class DcinsideApi {
         return res.data;
     }
 
-    async requestArticleList(id, recommend = false, page = 1, listNum = 50, headid) {
-        const { type, listUrlAn, listUrl } = await this.checkVaildGall(id);
+    async requestArticleList(id, page = 1, recommend = false, listNum = 200, headid) {
+        const { type, listUrlAn, listUrl } = await this.checkVaildGall(id, page);
 
         const ignoreIndex = await this.ignoreIndex(listUrl);
 
@@ -256,7 +256,7 @@ class DcinsideApi {
             headers: { ...this.generateDefaultHeaders(), cookie: `list_count=${listNum}; best_cate=B`, 'X-Csrf-Token': csrfToken }
         });
 
-        return res.data.gall_list.data.splice(ignoreIndex, ignoreIndex);
+        return ignoreIndex === 0 ? res.data.gall_list.data : res.data.gall_list.data.splice(ignoreIndex, ignoreIndex);
     }
 
     async requestArticleInfo(id, no) {
@@ -944,19 +944,19 @@ class DcinsideApi {
         return this.escapeJson(res.data);
     }
 
-    async checkVaildGall(id) {
+    async checkVaildGall(id, page = 1) {
         try {
             const res = await this.axios.get(LIST_MAJOR_URL + id);
 
             if (res.data.includes('mgallery/')) {
-                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
+                return { type: GALL_TYPE.MINOR, writeUrl: WRITE_MINOR_URL + id, deleteUrl: DELETE_MINOR_URL + id, viewUrl: VIEW_MINOR_URL + id, listUrl: LIST_MINOR_URL + id + `&page=${page}`, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
             } else {
-                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
+                return { type: GALL_TYPE.MAJOR, writeUrl: WRITE_MAJOR_URL + id, deleteUrl: DELETE_MAJOR_URL + id, viewUrl: VIEW_MAJOR_URL + id, listUrl: LIST_MAJOR_URL + id + `&page=${page}`, listUrlAn: `${MOBILE_BASE_URL}/board/${id}` };
             }
         } catch {
             try {
                 await this.axios.get(LIST_MINI_URL + id);
-                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id, listUrlAn: `${MOBILE_BASE_URL}/mini/${id}` };
+                return { type: GALL_TYPE.MINI, writeUrl: WRITE_MINI_URL + id, deleteUrl: DELETE_MINI_URL + id, viewUrl: VIEW_MINI_URL + id, listUrl: LIST_MINI_URL + id + `&page=${page}`, listUrlAn: `${MOBILE_BASE_URL}/mini/${id}` };
             } catch {
                 throw new Error(`갤러리를 찾을 수 없습니다: ${id}`);
             }
